@@ -26,13 +26,3 @@ for i in $(seq 1 $((n-1))); do
 		curl -s "${baseurl}${ds}.${de}.json" >"data/saron_compound_calcu.saron.${isods}_${isode}.json"
 	done
 done
-
-
-exit 0
-skip=2
-for ds in $(cat q3-2022-dates.txt); do 
-	for de in $(cat q3-2022-dates.txt | tail -n +$skip); do 		
-		echo curl "${ds}.${de}.json"
-	done
-	skip=$((skip+1))
-done
