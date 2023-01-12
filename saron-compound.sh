@@ -32,7 +32,7 @@ for i in $(seq 1 $((n-1))); do
 		isode=$(date '+%C%y-%m-%d' -d "$d+$j days") 
 		outfile="data/saron_compound_calcu.saron.${isods}_${isode}.json"
 		if [ ! -f "$outfile" ] ; then
-			echo curl -s "${baseurl}${ds}.${de}.json" >"$outfile"
+			curl -s "${baseurl}${ds}.${de}.json" >"$outfile"
 		fi
 	done
 done
