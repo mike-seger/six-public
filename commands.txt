@@ -1,8 +1,25 @@
 diff -y --suppress-common-lines  <(
 	cat raif-saro*|gunzip|sort -u
 	) <(
-	cat six-saron-compound-2022*|gunzip|sort -u
+	cat six-saron-compound-2022*|gunzip|grep -v 2021|sort -u
 	)  | cut -f1-3,8
 
-diff -y --suppress-common-lines  <(cat raif-saro*|gunzip|sort -u) <(cat six-saron-compound-2022*|gunzip|sort -u) |\ 
-cut -f1-3,8 | awk -v OFS='\t' 'function abs(v) {return v < 0 ? -v : v} { printf "%s\t%s\t%s\t%s\t%.6f\n", $1, $2, $3, $4, abs($3-$4) }' |grep -v "0.000[01]"
+diff -y --suppress-common-lines  <(
+        cat raif-saro*|gunzip|sort -u
+        ) <(
+        cat six-saron-compound-2022*|gunzip|sort -u
+        ) |\
+        cut -f1-3,8 | awk -v OFS='\t' '
+                function abs(v) { return v < 0 ? -v : v}
+                { printf "%s\t%s\t%s\t%s\t%.6f\n", $1, $2, $3, $4, abs($3-$4) }' |\
+        grep -v "0.000[01]"| grep -v 2021
+
+diff -y --suppress-common-lines  <(
+        cat raif-saro*|gunzip|sort -u
+        ) <(
+        cat six-saron-compound-2022*|gunzip|sort -u
+        ) |\
+        cut -f1-3,8 | awk -v OFS='\t' '
+                function abs(v) { return v < 0 ? -v : v}
+                { printf "%s\t%s\t%s\t%s\t%.6f\n", $1, $2, $3, $4, abs($3-$4) }' |\
+        grep -Ev "(2021|2022-01-0[12].2022-01)"
