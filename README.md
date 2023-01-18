@@ -42,3 +42,8 @@ curl 'https://boerse.raiffeisen.ch/api/Chart/GetData?instruments=1526_OneYear,49
   -H 'x-culture: de-ch'
 
 curl 'https://boerse.raiffeisen.ch/api/Chart/GetData?instruments=1526_OneYear,4961368,1526,1&chartPeriod=oneyear&noCache=2' -H 'customer: raiffeisen-prod' -H 'targetSystem: prod'
+
+```
+curl 'https://boerse.raiffeisen.ch/api/Chart/GetData?instruments=1526_OneYear,4961368,1526,1&chartPeriod=oneyear&noCache=2' -H 'customer: raiffeisen-prod' -H 'targetSystem: prod' `\
+	| jq '.[].data'
+```
