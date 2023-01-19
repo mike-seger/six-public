@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -30,85 +29,91 @@ public class CompoundRateCalculator {
     }
 
     public static class Rate {
-        public Rate(LocalDate date, double value) {
+        public Rate(LocalDate date, double value, int days) {
             this.date = date;
             this.value = value;
+            this.days = days;
         }
 
         LocalDate date;
         double value;
+        int days;
 
         public String toString() {
-            return String.format("{\"date\": \"%s\" \", \"value\": \"%s\"}\n", date, value);
+            return String.format("{\"date\": \"%s\" \", \"value\": \"%s\", \"days\": \"%s\"}\n", date, value, days);
         }
     }
 
     private List<CompoundRate> compoundRates(String[] args) throws IOException {
-        if (args.length != 3)
+        if (args.length != 3 && args.length!=4)
             throw new RuntimeException(getClass().getSimpleName() + " <rates-file> <startdate> <enddate>");
         var ratesFile = new File(args[0]);
         var startDate = LocalDate.parse(args[1]);
         var endDate = LocalDate.parse(args[2]);
-        return compoundRates(ratesFile, startDate, endDate);
+        return compoundRates(ratesFile, startDate, endDate, args.length==4 && args[3].equals("all"));
     }
 
-    public List<CompoundRate> compoundRates(File ratesFile, LocalDate startDate, LocalDate endDate) throws IOException {
+    public List<CompoundRate> compoundRates(File ratesFile, LocalDate startDate, LocalDate endDate, boolean all) throws IOException {
         if(!ratesFile.exists()) throw new RuntimeException("ratesFile not found: "+ratesFile.getAbsolutePath());
-        return compoundRates(getRateMap(ratesFile), startDate, endDate);
+        return compoundRates(getRateMap(ratesFile), startDate, endDate, all);
     }
 
-    public List<CompoundRate> compoundRates(SortedMap<LocalDate, Double> rateMap, LocalDate startDate, LocalDate endDate) {
+    public List<CompoundRate> compoundRates(SortedMap<LocalDate, Rate> rateMap, LocalDate startDate, LocalDate endDate, boolean all) {
         var compoundRates = new ArrayList<CompoundRate>();
         var sd = startDate;
-        while(sd.isBefore(endDate)) {
-            var date = sd.plusDays(1);
-            while (date.isBefore(endDate)) {
-                compoundRates.add(compoundRate(rateMap, sd, date));
-                date = date.plusDays(1);
+        if(all)
+            while(sd.isBefore(endDate)) {
+                var date = sd.plusDays(1);
+                while (date.isBefore(endDate)) {
+                    compoundRates.add(compoundRate(rateMap, sd, date));
+                    date = date.plusDays(1);
+                }
+                sd = sd.plusDays(1);
             }
-            sd = sd.plusDays(1);
-        }
+        else compoundRates.add(compoundRate(rateMap, startDate, endDate));
         return compoundRates;
     }
 
-    public CompoundRate compoundRate(SortedMap<LocalDate, Double> rateMap, LocalDate startDate, LocalDate endDate) {
-        System.out.println(rateMap.entrySet().stream().map(e -> new Rate(e.getKey(), e.getValue())).collect(Collectors.toList()));
+    public CompoundRate compoundRate(SortedMap<LocalDate, Rate> rateMap, LocalDate startDate, LocalDate endDate) {
+        System.out.println(rateMap.values());
         var date = startDate;
         var product = 1.0;
         while(date.isBefore(endDate)) {
-            var factor = (1 + rateMap.get(date)/36000.0);
-            date = date.plusDays(1);
-            product *= factor;
+            var rate = rateMap.get(date);
+            if(rate!=null) {
+                var factor = (1 + rate.days * rate.value / 36000.0);
+                product *= factor;
+            }
+            date = date.plusDays(rate.days);
         }
         product -= 1;
         product *= 36000.0 / DAYS.between(startDate, endDate);
         return new CompoundRate(startDate, endDate, product);
     }
 
-    private SortedMap<LocalDate, Double> getRateMap(File ratesFile) throws IOException {
-        TreeMap<LocalDate, Double> rates = new TreeMap<>();
+    private SortedMap<LocalDate, Rate> getRateMap(File ratesFile) throws IOException {
+        TreeMap<LocalDate, Rate> rates = new TreeMap<>();
         try (BufferedReader br= new BufferedReader(new FileReader(ratesFile))) {
             String line;
             while((line  = br.readLine()) != null) {
                 var tokens = line.trim().split("\t");
                 if (tokens.length != 2) throw new RuntimeException(
                     "Rates File contains invalid line: \n" + line + "\nwith only " + tokens.length + " tokens instead of 2");
-                rates.put(parseDate(tokens[0]), Double.parseDouble(tokens[1]));
+                var date = parseDate(tokens[0]);
+                rates.put(date, new Rate(date, Double.parseDouble(tokens[1]),1));
             }
         }
-        return fillDateGaps(rates);
+        return countDays(rates);
     }
 
-    private SortedMap<LocalDate, Double> fillDateGaps(SortedMap<LocalDate, Double> rates) throws IOException {
+    private SortedMap<LocalDate, Rate> countDays(SortedMap<LocalDate, Rate> rates) throws IOException {
         if(rates.size()==0) return rates;
         var dates = new ArrayList<LocalDate>(rates.keySet());
         var previousDate = dates.get(0);
         for(var d : new ArrayList<>(rates.keySet())) {
             var offset = 1;
-            while(previousDate.plusDays(offset).isBefore(d)) {
-                rates.put(previousDate.plusDays(offset++), rates.get(previousDate));
-            }
-            rates.put(d, rates.get(d));
+            var rate = rates.get(previousDate);
+            while(previousDate.plusDays(offset++).isBefore(d)) rate.days++;
             previousDate = d;
         }
         return rates;
@@ -116,6 +121,6 @@ public class CompoundRateCalculator {
 
     private LocalDate parseDate(String dateString) {
         if(dateString.matches("[0-9]+-[0-9]+-[0-9]+")) return LocalDate.parse(dateString);
-        return LocalDate.ofEpochDay(Long.parseLong(dateString)/(60*60*24));
+        return LocalDate.ofEpochDay(Long.parseLong(dateString)/(60*60*24)).plusDays(1);
     }
 }
