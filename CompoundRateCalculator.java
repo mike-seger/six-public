@@ -40,7 +40,7 @@ public class CompoundRateCalculator {
         int days;
 
         public String toString() {
-            return String.format("{\"date\": \"%s\" \", \"value\": \"%s\", \"days\": \"%s\"}\n", date, value, days);
+            return String.format("{\"date\": \"%s\", \"value\": \"%s\", \"days\": \"%s\"}\n", date, value, days);
         }
     }
 

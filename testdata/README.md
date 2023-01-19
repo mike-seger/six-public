@@ -17,6 +17,7 @@ done >saron-20221001-20221231.tsv
 
 # Commands
 
+## Get SARON rates
 ```
 baseurl="https://boerse.raiffeisen.ch/api/Chart/GetData"
 curl "$baseurl?instruments=1526_OneYear,4961368,1526,1&chartPeriod=oneyear&noCache=2" \
@@ -24,3 +25,14 @@ curl "$baseurl?instruments=1526_OneYear,4961368,1526,1&chartPeriod=oneyear&noCac
 	| jq '.[].data' | tr -d " ]\n" | sed -e "s/,\[/\n/g"|tr , "\t"|\
 	tr -d "["|awk '{ printf "%s\t%.6f\n", $1/1000, $2 }'
 ```
+
+## Convert JSON to TSV
+```
+cat sr.json| jq -r '.[]|[.date, .value]|@tsv' > sr.tsv
+```
+
+## Convert epoch to iso date
+```
+cat saron-rates2022-ts.tsv | awk '{print strftime("%Y-%m-%d",$1) "\t" $2}'
+```
+
