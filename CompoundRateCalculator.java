@@ -1,9 +1,6 @@
 import java.io.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -29,18 +26,18 @@ public class CompoundRateCalculator {
     }
 
     public static class Rate {
-        public Rate(LocalDate date, double value, int days) {
+        public Rate(LocalDate date, double value, int weight) {
             this.date = date;
             this.value = value;
-            this.days = days;
+            this.weight = weight;
         }
 
         LocalDate date;
         double value;
-        int days;
+        int weight;
 
         public String toString() {
-            return String.format("{\"date\": \"%s\", \"value\": \"%s\", \"days\": \"%s\"}\n", date, value, days);
+            return String.format("{\"date\": \"%s\", \"value\": \"%s\", \"days\": \"%s\"}\n", date, value, weight);
         }
     }
 
@@ -78,17 +75,22 @@ public class CompoundRateCalculator {
         System.out.println(rateMap.values());
         var date = startDate;
         var product = 1.0;
-        while(date.isBefore(endDate)) {
+        while(date.isBefore(endDate.plusDays(1))) {
             var rate = rateMap.get(date);
-            if(rate!=null) {
-                var factor = (1 + rate.days * rate.value / 36000.0);
-                product *= factor;
-            }
-            date = date.plusDays(rate.days);
+            date = date.plusDays(rate.weight);
+            var weight = rate.weight;
+            if(weight>1 && !date.isBefore(endDate)) weight = (int)DAYS.between(rate.date, endDate);
+            var factor = 1 + weight * rate.value / 36000.0;
+            System.out.printf("factor = 1 + weight * rate.value / 36000.0 = 1 + %d * %f / 36000 = %.16f\n", weight, rate.value, factor);
+            System.out.printf("product * factor = %f * %f = %.16f\n", product, factor, product*factor);
+            product *= factor;
         }
-        product -= 1;
-        product *= 36000.0 / DAYS.between(startDate, endDate);
-        return new CompoundRate(startDate, endDate, product);
+        System.out.printf("result = (product-1) * 36000.0 / DAYS.between(startDate, endDate) = (%f -1) * 36000.0 / %d = %.16f\n",
+            product, DAYS.between(startDate, endDate), (product-1)*36000.0 / DAYS.between(startDate, endDate));
+//        product -= 1;
+//        product *= 36000.0 / DAYS.between(startDate, endDate);
+
+        return new CompoundRate(startDate, endDate, (product-1)*36000.0 / DAYS.between(startDate, endDate));
     }
 
     private SortedMap<LocalDate, Rate> getRateMap(File ratesFile) throws IOException {
@@ -99,6 +101,7 @@ public class CompoundRateCalculator {
                 var tokens = line.trim().split("\t");
                 if (tokens.length != 2) throw new RuntimeException(
                     "Rates File contains invalid line: \n" + line + "\nwith only " + tokens.length + " tokens instead of 2");
+                if(!line.matches("[0-9-]*\t[0-9.-]*")) continue;
                 var date = parseDate(tokens[0]);
                 rates.put(date, new Rate(date, Double.parseDouble(tokens[1]),1));
             }
@@ -106,15 +109,23 @@ public class CompoundRateCalculator {
         return countDays(rates);
     }
 
-    private SortedMap<LocalDate, Rate> countDays(SortedMap<LocalDate, Rate> rates) throws IOException {
+    private SortedMap<LocalDate, Rate> countDays(SortedMap<LocalDate, Rate> rates) {
         if(rates.size()==0) return rates;
-        var dates = new ArrayList<LocalDate>(rates.keySet());
-        var previousDate = dates.get(0);
-        for(var d : new ArrayList<>(rates.keySet())) {
+        var dates = new ArrayList<>(rates.keySet());
+        var previousDay = dates.get(0);
+        for(var d : dates) {
             var offset = 1;
-            var rate = rates.get(previousDate);
-            while(previousDate.plusDays(offset++).isBefore(d)) rate.days++;
-            previousDate = d;
+            var previousRate = rates.get(previousDay);
+            while(previousDay.plusDays(offset).isBefore(d)) offset++;
+            previousRate.weight = offset;
+            offset = 1;
+            while(previousDay.plusDays(offset).isBefore(d)) {
+                var newDate = previousDay.plusDays(offset);
+                rates.put(newDate, new Rate(newDate, previousRate.value, previousRate.weight-offset));
+                offset++;
+            }
+
+            previousDay = d;
         }
         return rates;
     }
