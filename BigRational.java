@@ -91,7 +91,7 @@ public class BigRational implements Comparable<BigRational> {
 	// return string representation of (this)
 	public String toString() {
 		if (den.equals(BigInteger.ONE)) return num + "";
-		else return num + "/" + den;
+		else return bigDecimal().toString().replaceAll("0*$", "")+" (" + num + "/" + den + ")";
 	}
 
 	// return { -1, 0, + 1 } if a < b, a = b, or a > b
@@ -162,12 +162,10 @@ public class BigRational implements Comparable<BigRational> {
 		return a.times(b.reciprocal());
 	}
 
-	// return double reprentation (within given precision)
-	public double doubleValue() {
+	public BigDecimal bigDecimal() {
 		int SCALE = 128; // number of digits after the decimal place
 		BigDecimal numerator   = new BigDecimal(num);
 		BigDecimal denominator = new BigDecimal(den);
-		BigDecimal quotient	= numerator.divide(denominator, SCALE, RoundingMode.HALF_EVEN);
-		return quotient.doubleValue();
+		return numerator.divide(denominator, SCALE, RoundingMode.HALF_EVEN);
 	}
 }
