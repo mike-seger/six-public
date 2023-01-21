@@ -8,7 +8,7 @@ import java.util.*;
 import static java.time.temporal.ChronoUnit.DAYS;
 
 public class CompoundRateCalculator {
-    private final static MathContext mathContext = MathContext.DECIMAL128;
+    private final static MathContext mathContext = new MathContext(128, RoundingMode.HALF_UP);//MathContext.UNLIMITED;
     private final static BigDecimal commonFactor = new BigDecimal(36000, mathContext);
     public static void main(String[] args) throws IOException {
         System.out.println(new CompoundRateCalculator().compoundRates(args));

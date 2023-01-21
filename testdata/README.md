@@ -36,3 +36,16 @@ cat sr.json| jq -r '.[]|[.date, .value]|@tsv' > sr.tsv
 cat saron-rates2022-ts.tsv | awk '{print strftime("%Y-%m-%d",$1) "\t" $2}'
 ```
 
+# Links
+- https://stackoverflow.com/questions/179427/how-to-resolve-a-java-rounding-double-issue
+- https://www.mathsite.org/maths-factors/exponent-rules/rational-numbers-calculator.
+- https://www.calculatorsoup.com/calculators/math/mixednumbers.php
+- html#c=simplify_algstepssimplify&v217=1%2F7*1%2F8
+- https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/math/Fraction.html
+- https://github.com/javolution/jscience
+- https://github.com/mtommila/apfloat
+- http://www.apfloat.org/calculator/
+- https://github.com/MrRefactoring/Fraction.java
+- https://introcs.cs.princeton.edu/java/92symbolic/Rational.java.html
+- https://introcs.cs.princeton.edu/java/92symbolic/BigRational.java.html
+
