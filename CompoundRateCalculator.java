@@ -35,16 +35,14 @@ public class CompoundRateCalculator {
 			var r4ValueR = r4(valueR.bigDecimal());
 			var r6ValueR = r6(valueR.bigDecimal());
 			var rValue = rDebug(value);
-			var rValueR = rDebug(valueR.bigDecimal());
 			var error = false;
 			if(!(r4Value+r6Value).equals(r4ValueR+r6ValueR)) {
 				rValue = r(128, value).replaceAll("0*$", "");
-				rValueR = valueR.toString();
 				error = true;
 			}
 			return String.format("{\"startDate\": \"%s\", \"endDate\": \"%s\", \"valueD4\": \"%s\", \"valueD6\": \"%s\""+
 				", \"valueD4R\": \"%s\", \"valueD6R\": \"%s\", \"value\": \"%s\", \"valueR\": \"%s\", \"error\": \"%s\"}",
-				startDate, endDate, r4Value, r6Value, r4ValueR, r6ValueR, rValue, rValueR, error);
+				startDate, endDate, r4Value, r6Value, r4ValueR, r6ValueR, rValue, valueR, error);
 		}
 	}
 
