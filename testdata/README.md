@@ -2,6 +2,13 @@
 
 https://www.six-group.com/en/products-services/the-swiss-stock-exchange/market-data/indices/swiss-reference-rates/saron-calculator.html
 
+# API: six compound SARON
+example: 20220616-20220617
+```
+baseurl="https://www.six-group.com/en/products-services/the-swiss-stock-exchange/market-data/indices/swiss-reference-rates/saron-calculator/_jcr_content/sections/section/content/grid/par0/innerParsys/saron_compound_calcu.saron."
+curl ${baseurl}16062022.17062022.json
+```
+
 # get saron rates for q4 2022
 ```
 ./saron-compound.sh 2022-10-01 92

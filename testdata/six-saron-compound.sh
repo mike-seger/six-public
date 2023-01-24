@@ -30,6 +30,9 @@ for i in $(seq 1 $((n-1))); do
 	for j in $(seq $i $((n-1))); do
 		de=$(date '+%d%m%C%y' -d "$d+$j days") 
 		isode=$(date '+%C%y-%m-%d' -d "$d+$j days") 
+#		if [ "2023-01-10" != "${isode}" ] ; then
+#			continue
+#		fi
 		outfile="data/saron_compound_calcu.saron.${isods}_${isode}.json"
 		if [ ! -f "$outfile" ] ; then
 			curl -s "${baseurl}${ds}.${de}.json" >"$outfile"
