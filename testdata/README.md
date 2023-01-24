@@ -56,4 +56,4 @@ cat saron-rates2022-ts.tsv | awk '{print strftime("%Y-%m-%d",$1) "\t" $2}'
 - https://github.com/MrRefactoring/Fraction.java
 - https://introcs.cs.princeton.edu/java/92symbolic/Rational.java.html
 - https://introcs.cs.princeton.edu/java/92symbolic/BigRational.java.html
-
+- https://indico.cern.ch/event/814979/contributions/3401175/attachments/1831476/3107964/FloatingPointArithmetic.pdf
