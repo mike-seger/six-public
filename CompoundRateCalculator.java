@@ -141,7 +141,7 @@ public class CompoundRateCalculator {
 		var resultR = productR.minus(BigRational.ONE).times(commonFactorR).divides(new BigRational((int) DAYS.between(startDate, endDate)));
 		debugResult(startDate, endDate, product, result, resultR);
 		var compoundRate = new CompoundRate(startDate, endDate, result, resultR);
-		/*if(debugLevel>0)*/ System.out.println(compoundRate);
+		System.out.println(compoundRate);
 		return compoundRate;
 	}
 
