@@ -176,11 +176,16 @@ public class CompoundRateCalculator {
 		TreeMap<LocalDate, Rate> rates = new TreeMap<>();
 		try (BufferedReader br= new BufferedReader(new FileReader(ratesFile))) {
 			String line;
+			int lineNo=0;
 			while((line  = br.readLine()) != null) {
+				++lineNo;
 				var tokens = line.trim().split("\t");
 				if (tokens.length != 2) throw new RuntimeException(
-						"Rates File contains invalid line: \n" + line + "\nwith only " + tokens.length + " tokens instead of 2");
-				if(!line.matches("[0-9-]*\t[0-9.-]*")) continue;
+						"Rates File contains invalid line ("+lineNo+"): \n" + line + "\nwith only " + tokens.length + " tokens instead of 2");
+				if(!line.matches("[0-9-]*\t[0-9.-]*")) {
+					System.err.println("Warning - Skipping line ("+lineNo+"): "+line);
+					continue;
+				}
 				var date = parseDate(tokens[0]);
 				rates.put(date, new Rate(date, new BigDecimal(tokens[1], mathContext),BigDecimal.ONE));
 			}
