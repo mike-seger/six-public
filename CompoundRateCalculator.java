@@ -3,6 +3,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -106,12 +107,15 @@ public class CompoundRateCalculator {
 
 		if(all)
 			while(sd.isBefore(endDate.plusDays(1))) {
-				var date = sd.plusDays(1);
-				while (date.isBefore(endDate.plusDays(1))) {
-					compoundRates.add(compoundRate(rateMap, sd, date));
-					date = date.plusDays(1);
+				var ed = sd.plusDays(1);
+				System.err.println("CR "+sd+"-"+ed+ " : "+endDate + " " + ChronoUnit.DAYS.between(startDate, sd) + " / " + compoundRates.size());
+				while (ed.isBefore(endDate.plusDays(1))) {
+					compoundRates.add(compoundRate(rateMap, sd, ed));
+					ed = ed.plusDays(1);
 				}
 				sd = sd.plusDays(1);
+//				if(ChronoUnit.DAYS.between(startDate, sd)>=2)
+//					break;
 			}
 		else compoundRates.add(compoundRate(rateMap, startDate, endDate));
 		return compoundRates;
@@ -123,6 +127,8 @@ public class CompoundRateCalculator {
 		var productR = BigRational.ONE;
 		while(date.isBefore(endDate)) {
 			var rate = rateMap.get(date);
+			if(rate==null)
+				System.currentTimeMillis();
 			date = date.plusDays(rate.weight.longValue());
 			var weight = rate.weight;
 			var weightR = rate.weightR;
@@ -197,6 +203,7 @@ public class CompoundRateCalculator {
 		if(rates.size()==0) return rates;
 		var dates = new ArrayList<>(rates.keySet());
 		var previousDay = dates.get(0);
+		System.err.println("Initial Read "+rates.size());
 		for(var d : dates) {
 			var offset = BigDecimal.ONE;
 			var previousRate = rates.get(previousDay);
@@ -212,6 +219,7 @@ public class CompoundRateCalculator {
 
 			previousDay = d;
 		}
+		System.err.println("Filled Read "+rates.size());
 		return rates;
 	}
 
