@@ -1,7 +1,7 @@
 body, html {
     overflow: hidden;
     padding: 0;
-    margin: 0;
+    margin: 6px;;
     border: 0;
 }
 
@@ -43,4 +43,47 @@ body::-webkit-scrollbar-corner { width: 0; }
 
 #toolbar {
     width: auto;
+}
+
+#saron-table tr:nth-child(even) {
+    background-color: #eee;
+}
+
+#uploadtools {
+    margin-bottom: 14px;
+}
+
+.jtoolbar .jtoolbar-label, body {
+    font-family: Verdana;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 0.8fr 2.8fr;
+    grid-gap: 20px;
+}
+
+.input {
+    border: 1px solid rgb(161, 161, 161);
+}
+
+.btn {
+  padding: 6px;
+  margin: 0 10px;
+
+  overflow: hidden;
+
+  border-width: 0;
+  outline: none;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+
+  background-color: #6d7381;
+  color: #ecf0f1;
+
+  transition: background-color .3s;
+}
+
+.btn:hover, .btn:focus {
+  background-color: #4585d3;
 }
