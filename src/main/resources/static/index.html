@@ -1,0 +1,259 @@
+<html>
+<script src="https://jsuites.net/v4/jsuites.js"></script>
+<script src="https://jsuites.net/v4/jsuites.webcomponents.js"></script>
+<script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
+<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+<link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="jexcel-custom.css" type="text/css" />
+<link rel="stylesheet" href="buttons.css" type="text/css" />
+
+<style>
+    #saron-table tr:nth-child(even) {
+        background-color: #eee;
+    }
+
+    /* #saron-table, .jexcel_container, .grid-container {
+        height: 1024px;
+        max-height: 1024px;
+    } */
+
+    #uploadtools {
+        margin-bottom: 14px;
+    }
+
+    .jtoolbar .jtoolbar-label, body {
+        font-family: Verdana;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: 0.8fr 2.8fr;
+        grid-gap: 20px;
+    }
+
+    .input {
+        border: 1px solid rgb(161, 161, 161);
+    }
+
+    .btn {
+        margin: 0 10px;
+    }
+</style>
+
+<!-- <div id="uploadtools"></div> -->
+<input type="button" class="btn" onclick="importFile()" value="Upload"> SARON rates
+<br /><br />
+
+<div class="grid-container">
+    <div id="saron-table"></div>
+    <div id="link-table">
+        <a href="https://www.six-group.com/exchanges/downloads/indexdata/hsrron.csv"
+        >SARON rates 1999 - present</a>
+    </div>
+</div>
+<br />
+<input type="button" class="btn" value="Download" onclick="exportFile()">
+Compound rates from <input class="input" id='startdate'/>
+to <input class="input" id='enddate' />
+
+<jsuites-modal title="Message" closed="true" width="600" height="400">
+    <div id="servertext"></div>
+</jsuites-modal>
+
+<script>
+    // https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/reference_rates_en.html
+    const saronTable = document.getElementById('saron-table')
+    const serverMessage = document.querySelector('jsuites-modal')
+    const serverText = document.getElementById('servertext')
+
+    jSuites.calendar(document.getElementById('startdate'),{ format: 'YYYY-MM-DD' });
+    jSuites.calendar(document.getElementById('enddate'),{ format: 'YYYY-MM-DD' });
+
+ /*  jSuites.toolbar(document.getElementById('uploadtools'), {
+        container: true,
+        items:[
+            {
+                type: 'label',
+                content: 'Upoad SARON rates',
+                onclick: importFile
+            },
+            {
+               type: 'divisor',
+            },
+            {
+                type: 'label',
+                content: 'Download compound rates',
+                onclick: exportFile
+            },
+            {
+               type: 'divisor',
+               width: '160px',
+               content: 'from'
+            },
+
+            // {
+            //     type: 'select',
+            //     width: '120px',
+            //     render: function(e) {
+            //         return '<input class="input" id="startdate" />';
+            //     }
+            // },
+            // {
+            //    type: 'divisor',
+            //    width: '120px',
+            //    content: 'from'
+            // },
+            // {
+            //     type: 'select',
+            //     width: '160px',
+            //     render: function(e) {
+            //         return '<input class="input" id="enddate" />';
+            //     }
+            // }
+        ],
+        onload: function(a, b) {
+            var startdate = document.createElement('input')
+            startdate.id = 'startdate'
+            jSuites.calendar(document.getElementById('startdate'),{ format: 'YYYY-MM-DD' })
+            a.children[1].appendChild(startdate)
+
+            var enddate = document.createElement('input')
+            enddate.id = 'enddate'
+            jSuites.calendar(document.getElementById('enddate'),{ format: 'YYYY-MM-DD' })
+            a.children[1].appendChild(enddate)
+        }
+    });
+    */
+
+
+    // jspreadsheet(document.getElementById('link-table'), {
+    //     url: 'links.json',
+    //     defaultColAlign: 'left',
+    //     columns: [
+    //         { title: 'SARON rates', type:'text', width:160, readOnly:true },
+    //         { title: 'Link', type:'text', width:340, readOnly:true },
+    //     ]
+    // });
+
+    var table1 = jspreadsheet(document.getElementById('saron-table'), {
+        //data:data1,
+        //hideIndex,
+        defaultColAlign: 'left',
+        minDimensions: [2, 26],
+        height: 1024,
+        allowInsertRow:true,
+        allowManualInsertRow:true,
+        allowInsertColumn:false,
+        allowManualInsertColumn:false,
+        allowDeleteRow:true,
+        allowDeleteColumn:false,
+        tableOverflow:true,
+        columns: [
+            {
+                title: 'Date',
+                type: 'calendar',
+                options: { format:'YYYY-MM-DD' },
+                width:'120px',
+            },
+            {
+                title: 'Saron Rate',
+                type: 'numeric',
+                options: { format:'0.000000' },
+                mask:'0.000000',
+                width:'120px',
+                decimal:'.'
+            },
+        ],
+        rowResize: false,
+        columnDrag: false,
+    });
+
+    async function getRemoteData(url) {
+        try {
+            const response = await fetch(url, { method: "GET" })
+            const data = await response.text()
+            return data
+        } catch (e) {
+            console.log('error', e)
+            return new Array()
+        }
+    }
+
+    function getSaronTable() {
+        if(!saronTable.children[0]) return undefined;
+        return saronTable.jexcel[0];
+    }
+
+    function uploadFile(file) {
+        if( !(
+                file.type === "text/tab-separated-values"
+                || file.type === "text/csv"
+                || file.type === "text/plain"
+            )) {
+            messageDialog("Unsupported file type: "+file.type)
+            return
+        }
+
+        const reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = () => storeResults(reader.result);
+    }
+
+    function messageDialog(content) {
+        serverText.innerText = ""
+        if(content.trim().startsWith('<'))  {
+            content = content.replace(/<[^>]+>/g, '')
+                .replace(/^\s*$(?:\r\n?|\n)/gm,'')
+
+            const newLineExpression = /\r\n|\n\r|\n|\r/g;
+            const removeDuplicatedLines = (text) => {
+                return text.split(newLineExpression)
+                    .filter((item, index, array) => array.indexOf(item) === index)
+                    .join('\n')
+            };
+            content = removeDuplicatedLines(content)
+        }
+        serverText.innerText = content
+        serverMessage.modal.open()
+    }
+
+    function storeResults(data) {
+        console.log(data)
+        let csv = null
+        if(data.startsWith("ISIN;CH0049613687;")) {
+            csv = data.replace(/^ISIN;CH0049613687;.*$/mg, "")
+                .replace(/^SYMBOL;SARON;;.*$/mg, "")
+                .replace(/^NAME;Swiss.*$/mg, "")
+                .trim()
+            if(! csv.startsWith("Date;Close;")) {
+                messageDialog("Expected Date;Close;... in SIX SARON CSV")
+                return    
+            }
+            csv = csv.replace(/Date;Close;/mg, "Date;Saron Rate;")
+                .replace(/; */mg, ",")
+                .replace(/^([^,]*),([^,]*),.*/mg, "$1,$2")
+                .replace(/^(..)\.(..)\.(2...)/mg, "$3-$2-$1")
+            csv = d3.csvParse(csv)
+            if(csv.length < 365) {
+                messageDialog("Expected more that 365 rows in SIX SARON CSV")
+                return                
+            }
+        }
+    }
+
+    function exportFile() {
+    }
+
+    function importFile() {
+        let input = document.createElement('input')
+        input.type = 'file'
+        input.accept = ".csv, .tsv, .txt"
+        input.onchange = _this => {	uploadFile(input.files[0]);	}
+        input.click()
+    }
+
+</script>
+
+</html>

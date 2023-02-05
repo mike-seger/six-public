@@ -1,0 +1,46 @@
+body, html {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+html {
+    font-family: sans-serif;
+}
+
+body {
+    overflow-x: auto;
+    width: 100%;
+}
+
+body::-webkit-scrollbar {
+    min-width: 10px;
+    min-height: 10px;
+    color: #ccc;
+    background-color: #ccc;
+}
+
+body::-webkit-scrollbar-thumb {
+    min-width: 10px;
+    min-height: 10px;
+    background-color: #aaa;
+}
+
+body::-webkit-scrollbar-button { width: 0; }
+body::-webkit-scrollbar-corner { width: 0; }
+
+.container {
+    height: calc(100vh - 30px);
+    flex-direction: column;
+    padding: 9px;
+}
+
+.content {
+    flex: 1;
+    box-sizing: border-box;
+}
+
+#toolbar {
+    width: auto;
+}
