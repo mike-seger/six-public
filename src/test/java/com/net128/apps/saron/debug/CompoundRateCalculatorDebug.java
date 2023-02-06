@@ -1,8 +1,11 @@
-package com.net128.apps.saron.jdk11plus;
+package com.net128.apps.saron.debug;
 
 import com.net128.apps.saron.BigRational;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -12,14 +15,14 @@ import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
-public class CompoundRateCalculator {
+public class CompoundRateCalculatorDebug {
 	private final static MathContext mathContext = new MathContext(128, RoundingMode.HALF_UP);
 	private final static BigDecimal commonFactor = new BigDecimal(36000, mathContext);
 	private final static BigRational commonFactorR = new BigRational(36000);
 	private final static int rateScale = 1000000;
 	private static int debugLevel;
 	public static void main(String[] args) throws IOException {
-		new CompoundRateCalculator().compoundRates(args);
+		new CompoundRateCalculatorDebug().compoundRates(args);
 	}
 
 	private static class CompoundRate {
@@ -35,12 +38,12 @@ public class CompoundRateCalculator {
 		BigDecimal value;
 		BigRational valueR;
 		public String toString() {
-			var r4Value = r4(value);
-			var r6Value = r6(value);
-			var r4ValueR = r4(valueR.bigDecimal());
-			var r6ValueR = r6(valueR.bigDecimal());
-			var rValue = rDebug(value);
-			var error = false;
+			String r4Value = r4(value);
+			String r6Value = r6(value);
+			String r4ValueR = r4(valueR.bigDecimal());
+			String r6ValueR = r6(valueR.bigDecimal());
+			String rValue = rDebug(value);
+			boolean error = false;
 			if(!(r4Value+r6Value).equals(r4ValueR+r6ValueR)) {
 				rValue = r(128, value).replaceAll("0*$", "");
 				error = true;
@@ -73,8 +76,8 @@ public class CompoundRateCalculator {
 	}
 
 	private List<CompoundRate> compoundRates(String[] args) throws IOException {
-		var argList = new ArrayList<>(Arrays.asList(args));
-		var optArgs = new ArrayList<String>();
+		List<String> argList = new ArrayList<>(Arrays.asList(args));
+		List<String> optArgs = new ArrayList<>();
 		argList.forEach(arg -> {
 			if(arg.startsWith("-")) {
 				optArgs.add(arg);
@@ -87,9 +90,9 @@ public class CompoundRateCalculator {
 
 		if (argList.size() != 3 && argList.size()!=4)
 			throw new RuntimeException(getClass().getSimpleName() + " <rates-file> <startdate> <enddate>");
-		var ratesFile = new File(argList.get(0));
-		var startDate = LocalDate.parse(argList.get(1));
-		var endDate = LocalDate.parse(argList.get(2));
+		File ratesFile = new File(argList.get(0));
+		LocalDate startDate = LocalDate.parse(argList.get(1));
+		LocalDate endDate = LocalDate.parse(argList.get(2));
 		return compoundRates(ratesFile, startDate, endDate, argList.size()==4 && argList.get(3).equals("all"));
 	}
 
@@ -100,18 +103,18 @@ public class CompoundRateCalculator {
 
 	public List<CompoundRate> compoundRates(SortedMap<LocalDate, Rate> rateMap, LocalDate startDate, LocalDate endDate, boolean all) {
 		if(debugLevel>2) System.out.println(rateMap.values());
-		var compoundRates = new ArrayList<CompoundRate>();
-		var sd = startDate;
-		var rateDates = new ArrayList<>(rateMap.keySet());
+		List<CompoundRate> compoundRates = new ArrayList<>();
+		LocalDate sd = startDate;
+		List<LocalDate> rateDates = new ArrayList<>(rateMap.keySet());
 		if(rateDates.size()==0) throw new RuntimeException("No rates found");
 		if(startDate.isBefore(rateDates.get(0)))
 			throw new RuntimeException("Startdate is before first rate date: "+rateDates.get(0));
-		if(startDate.isAfter(rateDates.get(rateDates.size()-1)))
+		if(endDate.isAfter(rateDates.get(rateDates.size()-1)))
 			throw new RuntimeException("Enddate is after last rate date: "+rateDates.get(rateDates.size()-1));
 
 		if(all)
 			while(sd.isBefore(endDate.plusDays(1))) {
-				var ed = sd.plusDays(1);
+				LocalDate ed = sd.plusDays(1);
 				System.err.println("CR "+sd+"-"+ed+ " : "+endDate + " " + ChronoUnit.DAYS.between(startDate, sd) + " / " + compoundRates.size());
 				while (ed.isBefore(endDate.plusDays(1))) {
 					compoundRates.add(compoundRate(rateMap, sd, ed));
@@ -126,31 +129,31 @@ public class CompoundRateCalculator {
 	}
 
 	public CompoundRate compoundRate(SortedMap<LocalDate, Rate> rateMap, LocalDate startDate, LocalDate endDate) {
-		var date = startDate;
-		var product = BigDecimal.ONE;
-		var productR = BigRational.ONE;
+		LocalDate date = startDate;
+		BigDecimal product = BigDecimal.ONE;
+		BigRational productR = BigRational.ONE;
 		while(date.isBefore(endDate)) {
-			var rate = rateMap.get(date);
+			Rate rate = rateMap.get(date);
 			if(rate==null)
 				System.currentTimeMillis();
 			date = date.plusDays(rate.weight.longValue());
-			var weight = rate.weight;
-			var weightR = rate.weightR;
+			BigDecimal weight = rate.weight;
+			BigRational weightR = rate.weightR;
 			if(weight.compareTo(BigDecimal.ONE)>0 && !date.isBefore(endDate)) {
 				weight = new BigDecimal(DAYS.between(rate.date, endDate), mathContext);
 				weightR = new BigRational(weight.intValue());
 			}
-			var factor = rate.value.multiply(weight).divide(commonFactor, mathContext).add(BigDecimal.ONE);
-			var factorR = rate.valueR.times(weightR).divides(commonFactorR).plus(BigRational.ONE);
+			BigDecimal factor = rate.value.multiply(weight).divide(commonFactor, mathContext).add(BigDecimal.ONE);
+			BigRational factorR = rate.valueR.times(weightR).divides(commonFactorR).plus(BigRational.ONE);
 			debugFactor(weight, rate, factor, product, factorR, productR);
 			product = product.multiply(factor);
 			productR = productR.times(factorR);
 		}
 
-		var result = product.subtract(BigDecimal.ONE).multiply(commonFactor).divide(new BigDecimal(DAYS.between(startDate, endDate), mathContext), mathContext);
-		var resultR = productR.minus(BigRational.ONE).times(commonFactorR).divides(new BigRational((int) DAYS.between(startDate, endDate)));
+		BigDecimal result = product.subtract(BigDecimal.ONE).multiply(commonFactor).divide(new BigDecimal(DAYS.between(startDate, endDate), mathContext), mathContext);
+		BigRational resultR = productR.minus(BigRational.ONE).times(commonFactorR).divides(new BigRational((int) DAYS.between(startDate, endDate)));
 		debugResult(startDate, endDate, product, result, resultR);
-		var compoundRate = new CompoundRate(startDate, endDate, result, resultR);
+		CompoundRate compoundRate = new CompoundRate(startDate, endDate, result, resultR);
 		System.out.println(compoundRate);
 		return compoundRate;
 	}
@@ -189,14 +192,14 @@ public class CompoundRateCalculator {
 			int lineNo=0;
 			while((line  = br.readLine()) != null) {
 				++lineNo;
-				var tokens = line.trim().split("\t");
+				String [] tokens = line.trim().split("\t");
 				if (tokens.length != 2) throw new RuntimeException(
 						"Rates File contains invalid line ("+lineNo+"): \n" + line + "\nwith only " + tokens.length + " tokens instead of 2");
 				if(!line.matches("[0-9-]*\t[0-9.-]*")) {
 					System.err.println("Warning - Skipping line ("+lineNo+"): "+line);
 					continue;
 				}
-				var date = parseDate(tokens[0]);
+				LocalDate date = parseDate(tokens[0]);
 				rates.put(date, new Rate(date, new BigDecimal(tokens[1], mathContext),BigDecimal.ONE));
 			}
 		}
@@ -205,18 +208,18 @@ public class CompoundRateCalculator {
 
 	private SortedMap<LocalDate, Rate> fillGaps(SortedMap<LocalDate, Rate> rates) {
 		if(rates.size()==0) return rates;
-		var dates = new ArrayList<>(rates.keySet());
-		var previousDay = dates.get(0);
+		List<LocalDate> dates = new ArrayList<>(rates.keySet());
+		LocalDate previousDay = dates.get(0);
 		System.err.println("Initial Read "+rates.size());
-		for(var d : dates) {
-			var offset = BigDecimal.ONE;
-			var previousRate = rates.get(previousDay);
+		for(LocalDate d : dates) {
+			BigDecimal offset = BigDecimal.ONE;
+			Rate previousRate = rates.get(previousDay);
 			while(previousDay.plusDays(offset.intValue()).isBefore(d)) offset = offset.add(BigDecimal.ONE);
 			previousRate.weight = offset;
 			previousRate.weightR = new BigRational(offset.intValue());
 			offset = BigDecimal.ONE;
 			while(previousDay.plusDays(offset.intValue()).isBefore(d)) {
-				var newDate = previousDay.plusDays(offset.intValue());
+				LocalDate newDate = previousDay.plusDays(offset.intValue());
 				rates.put(newDate, new Rate(newDate, previousRate.value, previousRate.weight.subtract(offset)));
 				offset = offset.add(BigDecimal.ONE);
 			}

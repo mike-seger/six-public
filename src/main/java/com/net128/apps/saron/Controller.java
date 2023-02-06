@@ -4,19 +4,19 @@ import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.api.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ValidationException;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -27,45 +27,17 @@ import java.util.List;
 @RequestMapping("/api/v1")
 @ComponentScan(basePackageClasses = Controller.class)
 public class Controller {
-	private final String appName;
-
-	private final static String uploadMsg = "Successfully uploaded items: ";
-	private final static String uploadFailedMsg = "Failed uploading: ";
-	private final static String deleteMsg = "Successfully deleted items: ";
-	private final static String deleteFailedMsg = "Failed deleting: ";
+	private final static String uploadFailedMsg = "Failed to process: ";
 	private final CompoundRateCalculator compoundRateCalculator = new CompoundRateCalculator();
 
-	public Controller(@Value("${spring.application.name}") String appName) {
-		this.appName = appName;
-	}
-
-	@PutMapping(consumes = { TEXT_TSV, TEXT_CSV, MediaType.TEXT_PLAIN_VALUE })
-	public ResponseEntity<String> putCsv(
-		@RequestParam("entity")
-		String entity,
-		@Schema( allowableValues = {"true", "false"}, description = "true: TSV output, false: CSV output" )
-		@RequestParam(name="tabSeparated", required = false)
-		Boolean tabSeparated,
-		@RequestParam(name="deleteAll", required = false)
-		Boolean deleteAll,
-		@RequestBody
-		String csvData
-	) {
-		ResponseEntity<String> response;
-		try (InputStream is = new ByteArrayInputStream(csvData.getBytes())) {
-			int count = 0;//csvService.readCsv(is, entity, tabSeparated, deleteAll);
-			response = ResponseEntity.status(HttpStatus.OK).body(uploadMsg+entity+" (count="+count+")");
-		} catch(Exception e) {
-			response = failedResponseEntity(entity, e);
-		}
-		return response;
-	}
-
 	@PostMapping
-	public List<CompoundRateCalculator.CompoundRate> postCsv(
+	public List<CompoundRateCalculator.CompoundRate> calculateCompoundSaron(
 		@Schema( allowableValues = {"true", "false"}, description = "true: calculate all compound rates, false: calculate a single compound rate", required = true)
 		@RequestParam(name="all")
 		Boolean all,
+		@Schema( allowableValues = {"false", "true"}, description = "true: calculate with single start date, false: calculate with all start dates in range", required = true, defaultValue = "false")
+		@RequestParam(name="allStartDates", defaultValue = "false")
+		Boolean allStartDates,
 		@Schema(description = "The first rate date relevant for the compound rate calculation", required = true)
 		@RequestParam(value = "startDate")
 		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -81,9 +53,9 @@ public class Controller {
 	) {
 		rates=rates.replace("\\n", "\n");
 		try (Reader reader = new StringReader(rates)) {
-			return compoundRateCalculator.compoundRates(reader, startDate, endDate, all);
+			return compoundRateCalculator.compoundRates(reader, startDate, endDate, all, Boolean.TRUE.equals(allStartDates));
 		} catch(Exception e) {
-			throw new RuntimeException("Failed to calculate rates for\n: "+rates);
+			throw new RuntimeException("Failed to calculate rates for\n: "+rates, e);
 		}
 	}
 
