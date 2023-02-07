@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.LongStream;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -26,7 +27,7 @@ public class CompoundRateCalculator {
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class CompoundRate {
+	public static class CompoundRate implements Comparable<CompoundRate> {
 		@JsonProperty("value")
 		public String getValue() {
 			return decimal4(value.bigDecimal());
@@ -35,6 +36,11 @@ public class CompoundRateCalculator {
 		LocalDate startDate;
 		LocalDate endDate;
 		BigRational value;
+
+		@Override
+		public int compareTo(CompoundRate o) {
+			return toString().compareTo(o.toString());
+		}
 	}
 
 	private List<CompoundRate> compoundRates(String[] args) throws IOException {
@@ -73,7 +79,6 @@ public class CompoundRateCalculator {
 	public List<CompoundRate> compoundRates(SortedMap<LocalDate, RatesLoader.Rate> rateMap, LocalDate startDate, LocalDate endDate, boolean all, boolean allStartDates) {
 		if(debugLevel>2) System.out.println(rateMap.values());
 		List<CompoundRate> compoundRates = new ArrayList<>();
-		LocalDate sd = startDate;
 		List<LocalDate> rateDates = new ArrayList<>(rateMap.keySet());
 		if(rateDates.size()==0) throw new RuntimeException("No rates found");
 		if(startDate.isBefore(rateDates.get(0)))
@@ -82,17 +87,18 @@ public class CompoundRateCalculator {
 			throw new RuntimeException("Enddate is after last rate date: "+rateDates.get(rateDates.size()-1));
 
 		if(all)
-			while(sd.isBefore(endDate.plusDays(1))) {
+			LongStream.range(0, DAYS.between(startDate, endDate)).forEach(sdOffset -> {
+				LocalDate sd = startDate.plusDays(sdOffset);
 				LocalDate ed = sd.plusDays(1);
 				System.err.println("CR "+sd+"-"+ed+ " : "+endDate + " " + ChronoUnit.DAYS.between(startDate, sd) + " / " + compoundRates.size());
-				while (ed.isBefore(endDate.plusDays(1))) {
-					compoundRates.add(compoundRate(rateMap, sd, ed));
-					ed = ed.plusDays(1);
-				}
-				if(!allStartDates) break;
-				sd = sd.plusDays(1);
-			}
+				if(allStartDates)
+					LongStream.range(0, DAYS.between(ed, endDate.plusDays(1))).parallel().forEach(edOffset ->
+						compoundRates.add(compoundRate(rateMap, sd, ed.plusDays(edOffset)))
+					);
+				else compoundRates.add(compoundRate(rateMap, sd, endDate.plusDays(1)));
+			});
 		else compoundRates.add(compoundRate(rateMap, startDate, endDate));
+		compoundRates.sort(Comparator.naturalOrder());
 		return compoundRates;
 	}
 
