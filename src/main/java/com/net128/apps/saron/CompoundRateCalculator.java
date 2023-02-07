@@ -78,7 +78,7 @@ public class CompoundRateCalculator {
 
 	public List<CompoundRate> compoundRates(SortedMap<LocalDate, RatesLoader.Rate> rateMap, LocalDate startDate, LocalDate endDate, boolean all, boolean allStartDates) {
 		if(debugLevel>2) System.out.println(rateMap.values());
-		List<CompoundRate> compoundRates = new ArrayList<>();
+		List<CompoundRate> compoundRates = Collections.synchronizedList(new ArrayList<>());
 		List<LocalDate> rateDates = new ArrayList<>(rateMap.keySet());
 		if(rateDates.size()==0) throw new RuntimeException("No rates found");
 		if(startDate.isBefore(rateDates.get(0)))
@@ -95,7 +95,7 @@ public class CompoundRateCalculator {
 					LongStream.range(0, DAYS.between(ed, endDate.plusDays(1))).parallel().forEach(edOffset ->
 						compoundRates.add(compoundRate(rateMap, sd, ed.plusDays(edOffset)))
 					);
-				else compoundRates.add(compoundRate(rateMap, sd, endDate.plusDays(1)));
+				else compoundRates.add(compoundRate(rateMap, sd, endDate));
 			});
 		else compoundRates.add(compoundRate(rateMap, startDate, endDate));
 		compoundRates.sort(Comparator.naturalOrder());
