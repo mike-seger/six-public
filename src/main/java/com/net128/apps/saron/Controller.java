@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -50,7 +49,7 @@ public class Controller {
 		@Schema(description = "The last rate date relevant for the compound rate calculation", example = "2022-01-08")
 		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 		LocalDate endDate;
-		@Schema(description = "The rates in CSV or TSV format", format = "text", example = "2022-01-07,0.5589\\n2022-01-08,0.9895")
+		@Schema(description = "The rates in CSV or TSV format", format = "text", example = "2022-01-07,0.5589\n2022-01-08,0.9895")
 		String rates;
 	}
 
