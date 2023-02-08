@@ -107,6 +107,7 @@ public class CompoundRateCalculator {
 		BigRational product = BigRational.ONE;
 		while(date.isBefore(endDate)) {
 			RatesLoader.Rate rate = rateMap.get(date);
+			if(rate==null) throw new IllegalStateException("Missing rate for: "+date);
 			int weight = rate.weight;
 			date = date.plusDays(rate.weight);
 			if(weight>1 && !date.isBefore(endDate)) {
