@@ -2,6 +2,7 @@ package com.net128.apps.saron;
 
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.context.annotation.ComponentScan;
@@ -9,10 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ValidationException;
@@ -31,32 +29,29 @@ public class Controller {
 	private final CompoundRateCalculator compoundRateCalculator = new CompoundRateCalculator();
 
 	@PostMapping
-	public List<CompoundRateCalculator.CompoundRate> calculateCompoundSaron(
-		@Schema( allowableValues = {"true", "false"}, description = "true: calculate all compound rates, false: calculate a single compound rate", required = true)
-		@RequestParam(name="all")
-		Boolean all,
-		@Schema( allowableValues = {"false", "true"}, description = "true: calculate with single start date, false: calculate with all start dates in range", required = true, defaultValue = "false")
-		@RequestParam(name="allStartDates", defaultValue = "false")
-		Boolean allStartDates,
-		@Schema(description = "The first rate date relevant for the compound rate calculation", required = true)
-		@RequestParam(value = "startDate")
-		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-		LocalDate startDate,
-		@Schema(description = "The last rate date relevant for the compound rate calculation", required = true)
-		@RequestParam(value = "endDate")
-		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-		LocalDate endDate,
-		@Schema(description = "The rates in CSV or TSV format", required = true, format = "text")
-		@RequestParam(value = "rates")
-		@ParameterObject
-		String rates
-	) {
-		rates=rates.replace("\\n", "\n");
-		try (Reader reader = new StringReader(rates)) {
-			return compoundRateCalculator.compoundRates(reader, startDate, endDate, all, Boolean.TRUE.equals(allStartDates));
+	public List<CompoundRateCalculator.CompoundRate> calculateCompoundSaron(@RequestBody CompoundRateCalculatorParameters parameters) {
+		parameters.rates=parameters.rates.replace("\\n", "\n");
+		try (Reader reader = new StringReader(parameters.rates)) {
+			return compoundRateCalculator.compoundRates(reader, parameters.startDate, parameters.endDate, parameters.all, Boolean.TRUE.equals(parameters.allStartDates));
 		} catch(Exception e) {
-			throw new RuntimeException("Failed to calculate rates for\n: "+rates, e);
+			throw new RuntimeException("Failed to calculate rates for\n: "+parameters.rates, e);
 		}
+	}
+
+	@Data
+	public static class CompoundRateCalculatorParameters {
+		@Schema( allowableValues = {"true", "false"}, description = "true: calculate all compound rates, false: calculate a single compound rate")
+		Boolean all;
+		@Schema( allowableValues = {"false", "true"}, description = "true: calculate with single start date, false: calculate with all start dates in range", defaultValue = "false")
+		Boolean allStartDates;
+		@Schema(description = "The first rate date relevant for the compound rate calculation", example = "2022-01-07")
+		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+		LocalDate startDate;
+		@Schema(description = "The last rate date relevant for the compound rate calculation", example = "2022-01-08")
+		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+		LocalDate endDate;
+		@Schema(description = "The rates in CSV or TSV format", format = "text", example = "2022-01-07,0.5589\\n2022-01-08,0.9895")
+		String rates;
 	}
 
 	private ResponseEntity<String> failedResponseEntity(String entity, Throwable t) {

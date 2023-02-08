@@ -26,8 +26,8 @@
 
 <br />
 <input type="button" class="btn" value="Download" onclick="exportFile()">
-Compound rates from <input class="input" id='startdate'/>
-to <input class="input" id='enddate' /> 
+Compound rates start <input class="input" id='startdate'/>
+end <input class="input" id='enddate' /> 
 all start dates <input type="checkbox" class="btn" id='allStartDates' />
 
 <jsuites-modal title="Message" closed="true" width="600" height="400">
@@ -78,9 +78,13 @@ all start dates <input type="checkbox" class="btn" id='allStartDates' />
         columnDrag: false,
     });
 
-    async function postForm(url, formData) {
+    async function postJson(url, requestData) {
         try {
-            const response = await fetch(url, { body: formData, method: "POST" })
+            const response = await fetch(url, { 
+                body: requestData, 
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' }
+            })
             const data = await response.text()
             if(response.status != 200) throw data;
             return data
@@ -155,14 +159,15 @@ all start dates <input type="checkbox" class="btn" id='allStartDates' />
     }
 
     async function exportFile() {
-        let formData = new FormData()
-        formData.append('all', 'true')
-        formData.append('allStartDates', allStartDates.checked)
-        formData.append('startDate', startDate.value)
-        formData.append('endDate', endDate.value)
-        formData.append('rates', d3.csvFormatBody(saronTable.getData()))
+        const request = {
+            all: true,
+            allStartDates: allStartDates.checked,
+            startDate: startDate.value,
+            endDate: endDate.value,
+            rates: d3.csvFormatBody(saronTable.getData())
+        }
         
-        let response = await postForm("api/v1", formData)
+        let response = await postJson("api/v1", JSON.stringify(request))
         if(response != null) {
             console.log(response)   
             const data = JSON.parse(response)
