@@ -13,7 +13,7 @@
 
 <body>
 
-<input type="button" class="btn" onclick="importFile()" value="Upload"> SARON rates
+<input id="upload" type="button" class="btn" value="Upload"> SARON rates
 <br /><br />
 
 <div class="grid-container">
@@ -26,16 +26,18 @@
 </div>
 
 <br />
-<input type="button" class="btn" value="Download" onclick="exportFile()">
+<input id="download" type="button" class="btn" value="Download">
 Compound rates start <input class="input" id='startdate'/>
 end <input class="input" id='enddate' /> 
 all start dates <input type="checkbox" class="btn" id='allStartDates' />
+offline <input type="checkbox" class="btn" id='offline' />
 
 <jsuites-modal title="Message" closed="true" width="600" height="400">
     <div id="servertext"></div>
 </jsuites-modal>
 
-<script src="ui.js"></script>
+<!-- <script src="js/saronCompoundCalculator.mjs" type="module"></script> -->
+<script src="ui.mjs" type="module"></script>
 
 </body>
 </html>

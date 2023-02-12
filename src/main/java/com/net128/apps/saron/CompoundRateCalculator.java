@@ -86,7 +86,7 @@ public class CompoundRateCalculator {
 			product = product.multiply(factor);
 		}
 
-		BigDecimal result= (product.subtract(BigDecimal.ONE)).multiply(commonFactorBd).multiply(bigDecimal10000).divide(new BigDecimal(DAYS.between(startDate, endDate)), MathContext.DECIMAL64);
+		BigDecimal result = (product.subtract(BigDecimal.ONE)).multiply(commonFactorBd).multiply(bigDecimal10000).divide(new BigDecimal(DAYS.between(startDate, endDate)), MathContext.DECIMAL64);
 		result = result.setScale(10, RoundingMode.HALF_UP).setScale(0, RoundingMode.HALF_UP);
 		return new CompoundRate(startDate, endDate, new BigRational(result.intValue(), bigDecimal10000.intValue()));
 	}

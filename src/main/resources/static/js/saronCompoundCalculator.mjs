@@ -1,7 +1,12 @@
-import d3 from './d3-dsv@3.js'
-// https://cdn.jsdelivr.net/npm/d3-dsv@3
+//TODO fix this browser/CLI compatibility workaround
+let csvParse = null
+if(typeof Window === 'undefined') {
+    const myD3 = (await import('./d3-dsv@3.js')).default
+    csvParse = myD3.csvParse
+} else csvParse = d3.csvParse
 
 function loadRates(data) {
+    let result = null
     if(data.startsWith("ISIN;CH0049613687;")) {
         let csv = data.replace(/^ISIN;CH0049613687;.*$/mg, "")
             .replace(/^SYMBOL;SARON;;.*$/mg, "")
@@ -14,14 +19,14 @@ function loadRates(data) {
             .replace(/; */mg, ",")
             .replace(/^([^,]*),([^,]*),.*/mg, "$1,$2")
             .replace(/^(..)\.(..)\.([12]...)/mg, "$3-$2-$1")
-        let result = d3.csvParse(csv)
+        result = csvParse(csv)
         if(result.length < 365)
-            throw("Expected more that 365 rows in SIX SARON CSV")
+        throw("Expected more that 365 rows in SIX SARON CSV")
+    } else if(data.startsWith("Date,SaronRate")) result = csvParse(data)
+    else throw("Unknown format of rates data")
 
-        result.sort((a, b) => a.Date.localeCompare(b.Date))
-        return result
-    }
-    throw("Unknown format of rates data")
+    result.sort((a, b) => a.Date.localeCompare(b.Date))
+    return result
 }
 
 function localDate(isoDateString) {

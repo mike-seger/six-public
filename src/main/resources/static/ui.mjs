@@ -1,3 +1,6 @@
+import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
+//import {csvFormat} from "https://cdn.skypack.dev/d3-dsv@3"
+
 // https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/reference_rates_en.html
 const saronTableDiv = document.getElementById('saron-table')
 const serverMessage = document.querySelector('jsuites-modal')
@@ -5,6 +8,9 @@ const serverText = document.getElementById('servertext')
 const startDate = document.getElementById('startdate')
 const endDate = document.getElementById('enddate')
 const allStartDates = document.getElementById('allStartDates')
+const offline = document.getElementById('offline')
+const upload = document.getElementById('upload')
+const download = document.getElementById('download')
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
@@ -124,17 +130,31 @@ function storeResults(data) {
 async function exportFile() {
     const request = {
         all: true,
+        rational: false,
         allStartDates: allStartDates.checked,
         startDate: startDate.value,
         endDate: endDate.value,
         rates: d3.csvFormatBody(saronTable.getData())
     }
     
-    let response = await postJson("api/v1", JSON.stringify(request))
-    if(response != null) {
-        console.log(response)   
-        const data = JSON.parse(response)
-        const result = d3.csvFormat(data)
+    let procData = null
+    if(window.location.host.indexOf("mike-seger.github.io")>=0 || offline.checked) {
+        const data = saronTable.getData()
+        data.splice(0, 0, ["Date", "SaronRate"]);
+        const csv = loadRates(d3.csvFormatBody(data))
+        const rateMap = fillRates(csv)
+        procData = compoundRates(rateMap, startDate.value, 
+            endDate.value, request.all, request.allStartDates)
+        console.log(JSON.stringify(procData).replaceAll(",{","\n,{"))
+    } else {
+        const response = await postJson("api/v1", JSON.stringify(request))
+        if(response != null) {
+            console.log(response)
+            procData = JSON.parse(response)
+        }
+    }
+    if(procData != null) {
+        const result = d3.csvFormat(procData)
         let mimetype = "text/csv"
         const timeStamp =new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-');
         const dlLink = document.createElement('a')
@@ -153,3 +173,6 @@ function importFile() {
     input.onchange = _this => {	uploadFile(input.files[0]);	}
     input.click()
 }
+
+upload.addEventListener('click', importFile)
+download.addEventListener('click', exportFile)
