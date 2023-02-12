@@ -276,9 +276,45 @@ async function exportFile0() {
 function importFile() {
     Loader.open()
     let input = document.createElement('input')
+    let uploading = false
     input.type = 'file'
     input.accept = ".csv, .tsv, .txt"
-    input.onchange = _this => {	uploadFile(input.files[0]);	}
+    input.onchange = function(event) {
+        uploading = true
+        uploadFile(input.files[0])
+    }
+    input.onblur = function(event) {
+        if(input.files.length) return true
+        Loader.close()
+    }
+
+    function addDialogClosedListener(input, callback) {
+        var id = null
+        var active = false
+        var wrapper = function() { if (active) { active = false; callback() } }
+        var cleanup = function() { clearTimeout(id) }
+        var shedule = function(delay) { id = setTimeout(wrapper, delay) }
+        var onFocus = function() { cleanup(); shedule(1000) }
+        var onBlur = function() { cleanup() }
+        var onClick = function() { cleanup(); active = true}
+        var onChange = function() { cleanup(); shedule(0) }
+        input.addEventListener('click', onClick)
+        input.addEventListener('change', onChange)
+        window.addEventListener('focus', onFocus)
+        window.addEventListener('blur', onBlur)
+        return function() {
+            input.removeEventListener('click', onClick)
+            input.removeEventListener('change', onChange)
+            window.removeEventListener('focus', onFocus)
+            window.removeEventListener('blur', onBlur)
+        }
+    }
+
+    addDialogClosedListener(input, function() {
+        if(!uploading) Loader.close()
+        console.log('File dialog closed!')
+    })
+
     input.click()
 }
 
