@@ -1,0 +1,43 @@
+<html>
+<head>
+    <script src="https://jsuites.net/v4/jsuites.js"></script>
+    <script src="https://jsuites.net/v4/jsuites.webcomponents.js"></script>
+    <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
+    <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+    <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="src/main/resources/static/jexcel-custom.css" type="text/css" />
+    <link rel="stylesheet" href="src/main/resources/static/style.css" type="text/css" />
+</head>
+
+<body>
+
+<input id="upload" type="button" class="btn" value="Upload"> SARON rates
+<br /><br />
+
+<div class="grid-container">
+    <div id="saron-table"></div>
+    <div id="link-table">
+        SARON rate sources<br />
+        <a href="https://www.six-group.com/exchanges/downloads/indexdata/hsrron.csv"
+        >SARON rates 1999 - present (SIX)</a>
+    </div>
+</div>
+
+<br />
+<input id="download" type="button" class="btn" value="Download">
+Compound rates 
+start <input class="input" id='startdate'/>
+end <input class="input" id='enddate' /> 
+all start dates <input type="checkbox" class="btn" id='allStartDates' />
+offline <input type="checkbox" class="btn" id='offline' />
+
+<jsuites-modal title="Message" closed="true" width="600" height="400">
+    <div id="servertext"></div>
+</jsuites-modal>
+
+<script src="src/main/resources/static/ui.mjs" type="module"></script>
+
+</body>
+</html>
