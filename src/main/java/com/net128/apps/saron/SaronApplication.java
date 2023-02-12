@@ -9,11 +9,17 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 
 @SpringBootApplication
 public class SaronApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(SaronApplication.class, args);
+	public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+		if(args.length > 0 || "true".equals(System.getProperty("cli"))) runCalculation(args);
+		else SpringApplication.run(SaronApplication.class, args);
+	}
+
+	private static void runCalculation(String[] args) throws IOException, NoSuchAlgorithmException {
+		CompoundRateCalculatorCliApp.main(args);
 	}
 
 	@EventListener({ApplicationReadyEvent.class})

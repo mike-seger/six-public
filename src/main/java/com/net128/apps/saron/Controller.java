@@ -9,7 +9,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ValidationException;
@@ -28,10 +31,10 @@ public class Controller {
 	private final CompoundRateCalculator compoundRateCalculator = new CompoundRateCalculator();
 
 	@PostMapping
-	public List<CompoundRateCalculator.CompoundRate> calculateCompoundSaron(@RequestBody CompoundRateCalculatorParameters parameters) {
+	public List<CompoundRate> calculateCompoundSaron(@RequestBody CompoundRateCalculatorParameters parameters) {
 		parameters.rates=parameters.rates.replace("\\n", "\n");
 		try (Reader reader = new StringReader(parameters.rates)) {
-			return compoundRateCalculator.compoundRates(reader, parameters.startDate, parameters.endDate, parameters.all, Boolean.TRUE.equals(parameters.allStartDates));
+			return compoundRateCalculator.compoundRates(reader, parameters.startDate, parameters.endDate, parameters.all, parameters.allStartDates, parameters.rational);
 		} catch(Exception e) {
 			throw new RuntimeException("Failed to calculate rates for\n: "+parameters.rates, e);
 		}
@@ -43,6 +46,8 @@ public class Controller {
 		Boolean all;
 		@Schema( allowableValues = {"false", "true"}, description = "true: calculate with single start date, false: calculate with all start dates in range", defaultValue = "false")
 		Boolean allStartDates;
+		@Schema( allowableValues = {"false", "true"}, description = "true: use rational calculations, false: use floating point calculations", defaultValue = "false")
+		Boolean rational;
 		@Schema(description = "The first rate date relevant for the compound rate calculation", example = "2022-01-07")
 		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 		LocalDate startDate;

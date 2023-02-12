@@ -1,7 +1,5 @@
 package com.net128.apps.saron;
 
-import lombok.Data;
-
 import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,19 +12,6 @@ import static java.time.temporal.ChronoUnit.DAYS;
 
 public class RatesLoader {
 	private final static int rateDenominator = 1000000;
-
-	@Data
-	public static class Rate {
-		public Rate(LocalDate date, BigRational value, int weight) {
-			this.date = date;
-			this.weight = weight;
-			this.value = value;
-		}
-
-		LocalDate date;
-		int weight;
-		BigRational value;
-	}
 
 	public static SortedMap<LocalDate, Rate> getRateMap(File ratesFile) throws IOException {
 		return getRateMap(new FileReader(ratesFile));
@@ -41,7 +26,7 @@ public class RatesLoader {
 				++lineNo;
 				String [] tokens = line.trim().split("[\t,;]");
 				if (tokens.length != 2) throw new RuntimeException(
-						"Rates File contains invalid line ("+lineNo+"): \n" + line + "\nwith only " + tokens.length + " tokens instead of 2");
+					"Rates File contains invalid line ("+lineNo+"): \n" + line + "\nwith only " + tokens.length + " tokens instead of 2");
 				if(!line.matches("[0-9-]*[\t,;][0-9.-]*")) {
 					System.err.println("Warning - Skipping line ("+lineNo+"): "+line);
 					continue;
@@ -49,8 +34,8 @@ public class RatesLoader {
 				LocalDate date = parseDate(tokens[0]);
 				rates.put(date, new Rate(date, new BigRational(
 					new BigDecimal(tokens[1])
-						.multiply(new BigDecimal(rateDenominator)).intValue(),
-						rateDenominator), 1));
+							.multiply(new BigDecimal(rateDenominator)).intValue(),
+					rateDenominator), 1));
 			}
 		}
 		return fillGaps(rates);

@@ -98,12 +98,22 @@ function fillRates(csv) {
     return map
 }
 
-function compoundRate(rateMap, startDate, endDate) {
+function doValidateRateMap(rateMap, startDate, endDate) {
     let date = startDate
     let product = 1
     while(date < endDate) {
         let rateWeight = rateMap.get(date)
-        if(rateWeight==null) throw("Missing rate for: "+date)
+        if(rateWeight==null) throw("Missing rate for: "+date)       
+        date = plusDays(date, 1)
+    }
+}
+
+function compoundRate(rateMap, startDate, endDate, validateRateMap = true) {
+    let date = startDate
+    let product = 1
+    if(validateRateMap) doValidateRateMap(rateMap, startDate, endDate)
+    while(date < endDate) {
+        let rateWeight = rateMap.get(date)
         let weight = rateWeight.weight
         if(weight>1 && plusDays(date, weight) >= endDate)
             weight = diffDays(date, endDate)
@@ -119,22 +129,23 @@ function compoundRate(rateMap, startDate, endDate) {
 function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
     const compoundRates = []
     const dates = rateMap.keys()
-    if(dates.length==0) throw new RuntimeException("No rates found");
+    doValidateRateMap(rateMap, startDate, endDate)
+    if(dates.length==0) throw new RuntimeException("No rates found")
     if(startDate < dates[0])
-        throw("Startdate is before first rate date: "+dates[0]);
+        throw("Startdate is before first rate date: "+dates[0])
     if(plusDays(endDate, -10) >dates[dates.length-1])
-        throw("Enddate is after last rate date: "+dates[dates.length-1]);
+        throw("Enddate is after last rate date: "+dates[dates.length-1])
     if(all)
         range(0, diffDays(startDate, endDate)).forEach(
             offset => {
                 const sd = plusDays(startDate, offset)
                 const ed = plusDays(sd, 1)
-                console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + diffDays(startDate, sd) + " / " + compoundRates.length);
+                //console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + diffDays(startDate, sd) + " / " + compoundRates.length);
                 if(allStartDates)
                     range(0, diffDays(ed, endDate)+1).forEach(edOffset =>
-                        compoundRates.push(compoundRate(rateMap, sd, plusDays(ed, edOffset))
+                        compoundRates.push(compoundRate(rateMap, sd, plusDays(ed, edOffset, false))
                     ))
-                else compoundRates.push(compoundRate(rateMap, sd, endDate))            
+                else compoundRates.push(compoundRate(rateMap, sd, endDate, false))            
             }
         )
     else compoundRates.push(compoundRate(rateMap, startDate, endDate));

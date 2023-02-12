@@ -121,8 +121,6 @@ public class CompoundRateCalculatorDebug {
 					ed = ed.plusDays(1);
 				}
 				sd = sd.plusDays(1);
-//				if(ChronoUnit.DAYS.between(startDate, sd)>=2)
-//					break;
 			}
 		else compoundRates.add(compoundRate(rateMap, startDate, endDate));
 		return compoundRates;
@@ -134,8 +132,6 @@ public class CompoundRateCalculatorDebug {
 		BigRational productR = BigRational.ONE;
 		while(date.isBefore(endDate)) {
 			Rate rate = rateMap.get(date);
-			if(rate==null)
-				System.currentTimeMillis();
 			date = date.plusDays(rate.weight.longValue());
 			BigDecimal weight = rate.weight;
 			BigRational weightR = rate.weightR;
