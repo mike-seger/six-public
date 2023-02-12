@@ -1,4 +1,4 @@
-import { localDate, diffDays, plusDays } from './dateUtils.mjs'
+import { localDate, plusDays, diffDays } from './dateUtils.mjs'
 
 //TODO fix this browser/CLI compatibility workaround
 let csvParse = null

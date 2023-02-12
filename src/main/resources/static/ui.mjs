@@ -210,6 +210,7 @@ function storeResults(data) {
 
 async function exportFile() {
     Loader.open()
+    console.time('Execution Time')
     setTimeout(function() {
         exportFile0()
     }, 100);
@@ -253,6 +254,8 @@ async function exportFile0() {
                 dlLink.click()
                 dlLink.remove()
             }
+
+            console.timeEnd('Execution Time')
             Loader.close()
         }
 

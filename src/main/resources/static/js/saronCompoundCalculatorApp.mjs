@@ -39,5 +39,5 @@ const allStartDates = process.argv.length > 5?process.argv[5]=='true' : false
 
 const csv = loadRates(await loadRatesData())
 const rateMap = fillRates(csv)
-
-console.log(JSON.stringify(compoundRates(rateMap, startDate, endDate, all, allStartDates)).replaceAll(",{","\n,{"))
+const result = await compoundRates(rateMap, startDate, endDate, all, allStartDates)
+console.log(JSON.stringify(result).replaceAll(",{","\n,{"))
