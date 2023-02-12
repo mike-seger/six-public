@@ -23,6 +23,7 @@ const downloadChooser = jSuites.dropdown(document.getElementById('download-choos
         { group:'All Compound Rates', value:'all30days', text:'All >= -30 days' },
         { group:'All Compound Rates', value:'all90days', text:'All >= -90 days' },
         { group:'All Compound Rates', value:'all180days', text:'All >= -180 days' },
+        { group:'All Compound Rates', value:'all366days', text:'All >= -366 days' },
         { group:'Custom', value:'custom', text:'Custom Compound Ratess...' },
     ],
     onchange: function(el,val) { downloadChooserChanged(val); },
@@ -129,6 +130,10 @@ function downloadChooserChanged(val) {
                 break
             case "all180days":
                 startDate.value = plusDays(maxDate, -180)
+                endDate.value = maxDate
+                break
+            case "all366days":
+                startDate.value = plusDays(maxDate, -366)
                 endDate.value = maxDate
                 break
             default:
@@ -251,7 +256,6 @@ async function exportFile0() {
             Loader.close()
         }
 
-        let procData = null
         if(window.location.host.indexOf("mike-seger.github.io")>=0 || offline.checked) {
             const data = saronTable.getData()
             data.splice(0, 0, ["Date", "SaronRate"]);
