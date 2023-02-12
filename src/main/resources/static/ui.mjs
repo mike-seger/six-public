@@ -1,19 +1,62 @@
 import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
-//import {csvFormat} from "https://cdn.skypack.dev/d3-dsv@3"
+import { plusDays } from './js/dateUtils.mjs'
+import { Loader } from './js/loader.mjs'
 
-// https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/reference_rates_en.html
-const saronTableDiv = document.getElementById('saron-table')
 const serverMessage = document.querySelector('jsuites-modal')
 const serverText = document.getElementById('servertext')
 const startDate = document.getElementById('startdate')
 const endDate = document.getElementById('enddate')
 const allStartDates = document.getElementById('allStartDates')
 const offline = document.getElementById('offline')
+const offlineParameter = document.getElementById('offline-parameter')
 const upload = document.getElementById('upload')
 const download = document.getElementById('download')
 
+const downloadParameters = document.getElementById('download-parameters')
+const customParameters = document.getElementById('custom-parameters')
+let maxDate = new Date().toISOString().substring(0,10)
+
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
+const downloadChooser = jSuites.dropdown(document.getElementById('download-chooser'), {
+    data:[
+        { group:'All Compound Rates', value:'all30days', text:'All >= -30 days' },
+        { group:'All Compound Rates', value:'all90days', text:'All >= -90 days' },
+        { group:'All Compound Rates', value:'all180days', text:'All >= -180 days' },
+        { group:'Custom', value:'custom', text:'Custom Compound Ratess...' },
+    ],
+    onchange: function(el,val) { downloadChooserChanged(val); },
+    width:'280px',
+    autocomplete: true,
+})
+
+function initParamaeters() {
+    downloadChooser.setValue('all30days')
+    offline.checked = true
+    allStartDates.checked = true
+    if(window.location.host.indexOf("mike-seger.github.io")>=0) {
+        offlineParameter.style.display = "none"
+    }
+    downloadParameters.style.display = "none"
+}
+
+function ratesChanged(instance) {
+    console.log("Rates changed")
+    const data = instance.jexcel.getData()
+    const validData = data
+        .filter(rate => rate.length == 2)
+        .filter(rate => rate[0].match(/^[12]...-..-...*/))
+    if(validData.length>0) {
+        const dates = validData.map(rate => rate[0])
+        dates.sort()
+        maxDate = dates[dates.length-1].substring(0,10)
+        downloadChooserChanged(downloadChooser)
+        downloadParameters.style.display = "block"
+    } else {
+        downloadParameters.style.display = "none"
+    }
+    console.log("Data: "+validData)
+}
 
 const saronTable = jspreadsheet(document.getElementById('saron-table'), {
     defaultColAlign: 'left',
@@ -43,6 +86,10 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
             decimal:'.'
         },
     ],
+    onchange: ratesChanged,
+    onload: ratesChanged,
+    onpaste: ratesChanged,
+    width: '300px',
     rowResize: false,
     columnDrag: false,
 });
@@ -64,9 +111,30 @@ async function postJson(url, requestData) {
     }
 }
 
-function getSaronTable() {
-    if(!saronTableDiv.children[0]) return undefined;
-    return saronTableDiv.jexcel[0];
+function downloadChooserChanged(val) {
+    const value = val.getValue()
+    console.log(value)
+    if(value === 'custom') {
+        customParameters.style.display = "inline-block"
+    } else {
+        customParameters.style.display = "none"
+        switch(value) {
+            case "all30days":
+                startDate.value = plusDays(maxDate, -30)
+                endDate.value = maxDate
+                break
+            case "all90days":
+                startDate.value = plusDays(maxDate, -90)
+                endDate.value = maxDate
+                break
+            case "all180days":
+                startDate.value = plusDays(maxDate, -180)
+                endDate.value = maxDate
+                break
+            default:
+                console.log("Invalid value: "+value)
+        }
+    }
 }
 
 function uploadFile(file) {
@@ -103,70 +171,106 @@ function messageDialog(content) {
 }
 
 function storeResults(data) {
-    console.log(data)
-    let csv = null
-    if(data.startsWith("ISIN;CH0049613687;")) {
-        csv = data.replace(/^ISIN;CH0049613687;.*$/mg, "")
-            .replace(/^SYMBOL;SARON;;.*$/mg, "")
-            .replace(/^NAME;Swiss.*$/mg, "")
-            .trim()
-        if(! csv.startsWith("Date;Close;")) {
-            messageDialog("Expected Date;Close;... in SIX SARON CSV")
-            return    
+    try {
+        console.log(data)
+        let csv = null
+        if(data.startsWith("ISIN;CH0049613687;")) {
+            csv = data.replace(/^ISIN;CH0049613687;.*$/mg, "")
+                .replace(/^SYMBOL;SARON;;.*$/mg, "")
+                .replace(/^NAME;Swiss.*$/mg, "")
+                .trim()
+            if(! csv.startsWith("Date;Close;")) {
+                Loader.close()
+                messageDialog("Expected Date;Close;... in SIX SARON CSV")
+                return    
+            }
+            csv = csv.replace(/Date;Close;/mg, "Date;SaronRate;")
+                .replace(/; */mg, ",")
+                .replace(/^([^,]*),([^,]*),.*/mg, "$1,$2")
+                .replace(/^(..)\.(..)\.([12]...)/mg, "$3-$2-$1")
+            csv = d3.csvParse(csv)
+            if(csv.length < 365) {
+                Loader.close()
+                messageDialog("Expected more that 365 rows in SIX SARON CSV")
+                return                
+            }
+            saronTable.setData(csv)
         }
-        csv = csv.replace(/Date;Close;/mg, "Date;SaronRate;")
-            .replace(/; */mg, ",")
-            .replace(/^([^,]*),([^,]*),.*/mg, "$1,$2")
-            .replace(/^(..)\.(..)\.([12]...)/mg, "$3-$2-$1")
-        csv = d3.csvParse(csv)
-        if(csv.length < 365) {
-            messageDialog("Expected more that 365 rows in SIX SARON CSV")
-            return                
-        }
-        saronTable.setData(csv)
+        Loader.close()
+    } catch(err) {
+        Loader.close()
+        messageDialog("Error occurred processing the uploaded rates file:\n"+err)        
     }
 }
 
 async function exportFile() {
-    const request = {
-        all: true,
-        rational: false,
-        allStartDates: allStartDates.checked,
-        startDate: startDate.value,
-        endDate: endDate.value,
-        rates: d3.csvFormatBody(saronTable.getData())
-    }
-    
-    let procData = null
-    if(window.location.host.indexOf("mike-seger.github.io")>=0 || offline.checked) {
-        const data = saronTable.getData()
-        data.splice(0, 0, ["Date", "SaronRate"]);
-        const csv = loadRates(d3.csvFormatBody(data))
-        const rateMap = fillRates(csv)
-        procData = compoundRates(rateMap, startDate.value, 
-            endDate.value, request.all, request.allStartDates)
-        console.log(JSON.stringify(procData).replaceAll(",{","\n,{"))
-    } else {
-        const response = await postJson("api/v1", JSON.stringify(request))
-        if(response != null) {
-            console.log(response)
-            procData = JSON.parse(response)
+    Loader.open()
+    setTimeout(function() {
+        exportFile0()
+    }, 100);
+}
+
+async function exportFile0() {
+    try {
+        const request = {
+            all: true,
+            rational: false,
+            allStartDates: allStartDates.checked,
+            startDate: startDate.value,
+            endDate: endDate.value,
+            rates: d3.csvFormatBody(saronTable.getData())
         }
-    }
-    if(procData != null) {
-        const result = d3.csvFormat(procData)
-        let mimetype = "text/csv"
-        const timeStamp =new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-');
-        const dlLink = document.createElement('a')
-        dlLink.href = 'data:'+mimetype+';charset=utf-8,' + encodeURI(result)
-        dlLink.target = '_blank'
-        dlLink.download = 'saron-compound-'+startdate.value+'_'+endDate.value+'_'+ timeStamp +'.csv'
-        dlLink.click()
-        dlLink.remove()
-    }
+
+        function handleError(err) {
+            console.error(err)
+            Loader.close()
+            messageDialog("Error occurred creating the file to download:\n"+err)
+        }
+        
+        function processResponse(response, parse) {
+            let procData = null
+            if(response != null && parse) {
+                console.log(response)
+                procData = JSON.parse(response)
+            } else if(response != null) {
+                procData = response
+                console.log(JSON.stringify(procData).replaceAll(",{","\n,{"))
+            }
+
+            if(procData != null) {
+                const result = d3.csvFormat(procData)
+                let mimetype = "text/csv"
+                const timeStamp =new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-');
+                const dlLink = document.createElement('a')
+                dlLink.href = 'data:'+mimetype+';charset=utf-8,' + encodeURI(result)
+                dlLink.target = '_blank'
+                dlLink.download = 'saron-compound-'+startdate.value+'_'+endDate.value+'_'+ timeStamp +'.csv'
+                dlLink.click()
+                dlLink.remove()
+            }
+            Loader.close()
+        }
+
+        let procData = null
+        if(window.location.host.indexOf("mike-seger.github.io")>=0 || offline.checked) {
+            const data = saronTable.getData()
+            data.splice(0, 0, ["Date", "SaronRate"]);
+            const csv = loadRates(d3.csvFormatBody(data))
+            const rateMap = fillRates(csv)
+            compoundRates(rateMap, startDate.value, 
+                endDate.value, request.all, request.allStartDates)
+                .then((procData) => processResponse(procData, false))
+                .catch((err) => handleError(err))
+        } else {
+            postJson("api/v1", JSON.stringify(request))
+                .then((procData) => processResponse(procData, true))
+                .catch((err) => handleError(err))
+            }
+    } catch(err) { handleError(err) }
 }
 
 function importFile() {
+    Loader.open()
     let input = document.createElement('input')
     input.type = 'file'
     input.accept = ".csv, .tsv, .txt"
@@ -176,3 +280,5 @@ function importFile() {
 
 upload.addEventListener('click', importFile)
 download.addEventListener('click', exportFile)
+
+initParamaeters()

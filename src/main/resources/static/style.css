@@ -1,7 +1,7 @@
 body, html {
     overflow: hidden;
     padding: 0;
-    margin: 6px;;
+    margin: 6px;
     border: 0;
 }
 
@@ -59,7 +59,7 @@ body::-webkit-scrollbar-corner { width: 0; }
 
 .grid-container {
     display: grid;
-    grid-template-columns: 0.8fr 2.8fr;
+    grid-template-columns: 1.1fr 2.8fr;
     grid-gap: 20px;
 }
 
@@ -87,4 +87,21 @@ body::-webkit-scrollbar-corner { width: 0; }
 
 .btn:hover, .btn:focus {
   background-color: #4585d3;
+}
+
+#custom-parameters {
+    margin-left: 10px;
+    display: inline-block;
+}
+
+#custom-parameters * td {
+    padding-right: 15px;
+}
+
+#download-parameters {
+    margin-top: 20px;
+}
+
+#download-parameters > * {
+    vertical-align: top;
 }

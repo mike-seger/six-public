@@ -1,3 +1,5 @@
+import { localDate, diffDays, plusDays } from './dateUtils.mjs'
+
 //TODO fix this browser/CLI compatibility workaround
 let csvParse = null
 if(typeof Window === 'undefined') {
@@ -29,10 +31,6 @@ function loadRates(data) {
     return result
 }
 
-function localDate(isoDateString) {
-    return new Date(isoDateString.substring(0,10) + 'T00:00:00.000Z')
-}
-
 Date.prototype.diffDays = function(date) {
   var diff = date.setHours(12) - this.setHours(12)
   return Math.round(diff/8.64e7)
@@ -46,14 +44,6 @@ Date.prototype.plusDays = function(days) {
 
 Date.prototype.toISONoTime = function() {
     return new Date(this.getTime() - this.getTimezoneOffset()*60000).toISOString().substring(0,10)
-}
-
-function diffDays(isoDate1, isoDate2) {
-    return localDate(isoDate1).diffDays(localDate(isoDate2))
-}
-
-function plusDays(isoDate, days) {
-    return localDate(isoDate).plusDays(days).toISONoTime()
 }
 
 function range(start, end) {
@@ -130,7 +120,7 @@ function compoundRate(rateMap, startDate, endDate, validateRateMap = true) {
     return { startDate: startDate, endDate: endDate, value: formattedRound(result, 4) }
 }
 
-function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
+async function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
     const compoundRates = []
     const dates = rateMap.keys()
     doValidateRateMap(rateMap, startDate, endDate)

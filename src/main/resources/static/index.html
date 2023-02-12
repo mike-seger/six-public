@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="jexcel-custom.css" type="text/css" />
+    <link rel="stylesheet" href="js/loader.css" />
     <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 
@@ -22,23 +23,29 @@
         SARON rate sources<br />
         <a href="https://www.six-group.com/exchanges/downloads/indexdata/hsrron.csv"
         >SARON rates 1999 - present (SIX)</a>
+        <br /><br />
+        More information<br />
+        <a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/reference_rates_en.html" target="_blank"
+        >Swiss Refernce Rates</a>
     </div>
 </div>
 
-<br />
-<input id="download" type="button" class="btn" value="Download">
-Compound rates 
-start <input class="input" id='startdate'/>
-end <input class="input" id='enddate' /> 
-all start dates <input type="checkbox" class="btn" id='allStartDates' />
-offline <input type="checkbox" class="btn" id='offline' />
-
+<div id="download-parameters">
+    <input id="download" type="button" class="btn" value="Download">
+    <div id="download-chooser"></div>
+    <div id="custom-parameters">
+        <table>
+            <tr><td>Start Date</td><td><input class="input" id='startdate'/></td></tr>
+            <tr><td>End Date</td><td><input class="input" id='enddate'/></td></tr>
+            <tr><td>All Start Dates</td><td><input type="checkbox" class="btn" id='allStartDates' /></td></tr>
+            <tr id="offline-parameter"><td>Offline</td><td><input type="checkbox" class="btn" id='offline' /></td></tr>
+        </table>
+    </div>
+</div>
 <jsuites-modal title="Message" closed="true" width="600" height="400">
     <div id="servertext"></div>
 </jsuites-modal>
 
-<!-- <script src="js/saronCompoundCalculator.mjs" type="module"></script> -->
 <script src="ui.mjs" type="module"></script>
-
 </body>
 </html>
