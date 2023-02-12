@@ -17,8 +17,6 @@ async function loadRatesData() {
         console.error("Checking rates file: "+ratesFilePath)
         if(fs.existsSync(ratesFilePath)) {
             const stats = fs.statSync(ratesFilePath)
-            console.log(`File Data Last Modified: ${stats.mtime}`)
-            console.log(`File Status Last Modified: ${stats.ctime}`)
             if(stats.ctime < new Date().setUTCHours(0, 0, 0, 0)) {
                 console.error("Rates file is outdated. Re-downloading")
                 fs.unlinkSync(ratesFilePath)
@@ -27,6 +25,7 @@ async function loadRatesData() {
         } else {
             await download(sixRatesUrl, ratesFilePath)
         }
+        console.error("Using rates file: "+ratesFilePath)
         return fs.readFileSync(ratesFilePath, 'utf8')
     } catch (error) {
         throw(error)

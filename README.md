@@ -7,7 +7,8 @@ s=$(date +%s)
 java -jar build/libs/saron-compound-public-0.0.1-SNAPSHOT.jar -all -allStartDates - 2022-01-01 2022-12-31 true true |\
     grep start|sed -e 's/{"/\n{"/g' |\
     tr -d '"{}[]' |tr ":" ","|\
-    sed -e "s/^,//"|cut -d , -f2,4,6> /tmp/1
+    sed -e "s/^,//"|cut -d , -f2,4,6 |grep -v "^ *$"> /tmp/1
+wc -l /tmp/1
 echo -n "time to complete (s): "
 echo "$(date +%s) - $s"|bc
 

@@ -100,7 +100,6 @@ function fillRates(csv) {
 
 function doValidateRateMap(rateMap, startDate, endDate) {
     let date = startDate
-    let product = 1
     while(date < endDate) {
         let rateWeight = rateMap.get(date)
         if(rateWeight==null) throw("Missing rate for: "+date)       
@@ -140,7 +139,7 @@ function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
             offset => {
                 const sd = plusDays(startDate, offset)
                 const ed = plusDays(sd, 1)
-                //console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + diffDays(startDate, sd) + " / " + compoundRates.length);
+                console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + diffDays(startDate, sd) + " / " + compoundRates.length);
                 if(allStartDates)
                     range(0, diffDays(ed, endDate)+1).forEach(edOffset =>
                         compoundRates.push(compoundRate(rateMap, sd, plusDays(ed, edOffset, false))
