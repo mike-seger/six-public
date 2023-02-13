@@ -109,3 +109,7 @@ body::-webkit-scrollbar-corner { width: 0; }
 #download-parameters > * {
     vertical-align: top;
 }
+
+.text-element {
+    line-height: 25px;
+}

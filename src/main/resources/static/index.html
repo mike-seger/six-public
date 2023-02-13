@@ -14,7 +14,7 @@
 
 <body>
 
-<input id="upload" type="button" class="btn" value="Upload"> SARON rates
+<input id="upload" type="button" class="btn" value="Upload"> SARON Rates
 <br /><br />
 
 <div class="grid-container">
@@ -25,13 +25,15 @@
         >SARON rates 1999 - present (SIX)</a>
         <br /><br />
         More information<br />
+        <a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/compound_rates_en.html"
+        >SARON Compound Rates</a><br />
         <a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/reference_rates_en.html" target="_blank"
         >Swiss Refernce Rates</a>
     </div>
 </div>
 
 <div id="download-parameters">
-    <input id="download" type="button" class="btn" value="Download">
+    <input id="download" type="button" class="btn" value="Download"><span class="text-element">Compound Rates</span>
     <div id="download-chooser"></div>
     <div id="custom-parameters">
         <table>
@@ -47,5 +49,13 @@
 </jsuites-modal>
 
 <script src="ui.mjs" type="module"></script>
+<script type="module">
+    import { plusDays, getPrevPeriod } from './js/dateUtils.mjs'
+
+    let date = new Date()
+    date.setDate(date.getDate() + 1)
+    const prevQuarter = getPrevPeriod(date, 3)
+    const prevSemester = getPrevPeriod(date, 6)
+</script>
 </body>
 </html>

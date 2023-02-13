@@ -1,5 +1,5 @@
 import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
-import { plusDays } from './js/dateUtils.mjs'
+import { plusDays, getPrevPeriod } from './js/dateUtils.mjs'
 import { Loader } from './js/loader.mjs'
 
 const serverMessage = document.querySelector('jsuites-modal')
@@ -14,25 +14,36 @@ const download = document.getElementById('download')
 
 const downloadParameters = document.getElementById('download-parameters')
 const customParameters = document.getElementById('custom-parameters')
-let maxDate = new Date().toISOString().substring(0,10)
+let maxDate = new Date()
+let chooserData = createChooserData()
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
 const downloadChooser = jSuites.dropdown(document.getElementById('download-chooser'), {
-    data:[
-        { group:'All Compound Rates', value:'all30days', text:'All >= -30 days' },
-        { group:'All Compound Rates', value:'all90days', text:'All >= -90 days' },
-        { group:'All Compound Rates', value:'all180days', text:'All >= -180 days' },
-        { group:'All Compound Rates', value:'all366days', text:'All >= -366 days' },
-        { group:'Custom', value:'custom', text:'Custom Compound Ratess...' },
-    ],
+    data: chooserData,
     onchange: function(el,val) { downloadChooserChanged(val); },
-    width:'280px',
     autocomplete: true,
 })
 
-function initParamaeters() {
-    downloadChooser.setValue('all30days')
+function createChooserData() {
+    let date = maxDate
+    date.setDate(date.getDate() + 1)
+    const prevQuarter = getPrevPeriod(date, 3)
+    const prevSemester = getPrevPeriod(date, 6)
+    const prevYear = getPrevPeriod(date, 12)
+    const semQuarter = (prevSemester.n-1)*2
+    const data = [
+        { group:'Predefined Ranges', value: `${prevQuarter.start} ${prevQuarter.end}`, text: `Q${prevQuarter.n} '${prevQuarter.year99} (${prevQuarter.sMonth}-${prevQuarter.eMonth})` },
+        { group:'Predefined Ranges', value: `${prevSemester.start} ${prevSemester.end}`, text: `Q${semQuarter}+Q${semQuarter+1} '${prevSemester.year99} (${prevSemester.sMonth}-${prevSemester.eMonth})` },
+        { group:'Predefined Ranges', value: `${prevYear.start} ${prevYear.end}`, text: `${prevYear.year} (${prevYear.sMonth}-${prevYear.eMonth})` },
+        { group:'Custom Range', value:'custom', text:'Range...' },
+    ]
+
+    return data
+}
+
+function initParameters() {
+    downloadChooser.setValue(chooserData[0].value)
     offline.checked = true
     allStartDates.checked = true
     if(window.location.host.indexOf("mike-seger.github.io")>=0) {
@@ -50,8 +61,11 @@ function ratesChanged(instance) {
     if(validData.length>0) {
         const dates = validData.map(rate => rate[0])
         dates.sort()
-        maxDate = dates[dates.length-1].substring(0,10)
+        maxDate = new Date(dates[dates.length-1].substring(0,10))
+        chooserData = createChooserData()
+        downloadChooser.setData(chooserData)
         downloadChooserChanged(downloadChooser)
+        downloadChooser.setValue(chooserData[0].value)
         downloadParameters.style.display = "block"
     } else {
         downloadParameters.style.display = "none"
@@ -119,26 +133,9 @@ function downloadChooserChanged(val) {
         customParameters.style.display = "inline-block"
     } else {
         customParameters.style.display = "none"
-        switch(value) {
-            case "all30days":
-                startDate.value = plusDays(maxDate, -30)
-                endDate.value = maxDate
-                break
-            case "all90days":
-                startDate.value = plusDays(maxDate, -90)
-                endDate.value = maxDate
-                break
-            case "all180days":
-                startDate.value = plusDays(maxDate, -180)
-                endDate.value = maxDate
-                break
-            case "all366days":
-                startDate.value = plusDays(maxDate, -366)
-                endDate.value = maxDate
-                break
-            default:
-                console.log("Invalid value: "+value)
-        }
+        const isoDates = value.split(" ")
+        startDate.value = isoDates[0]
+        endDate.value = isoDates[1]
     }
 }
 
@@ -199,6 +196,21 @@ function storeResults(data) {
                 messageDialog("Expected more that 365 rows in SIX SARON CSV")
                 return                
             }
+            saronTable.setData(csv)
+        } else {
+            if(data.indexOf("\n")<0) throw ("Expected '\\n' linefeeds in data")
+            if(data.indexOf(";")<0 && data.indexOf(",")<0 
+                && data.indexOf("\t")<0) throw ("Expected column separators ';,\\t' in data")
+            data = data.replace(";", "\t").replace(",", "\t").trim()
+            const header = data.substring(0, Math.max(0,data.indexOf("\n"))).trim()
+            if(!header.match(/[12][0-9]{3}-[0-9]{2}-[0-9]{2}.*/))
+                data = data.substring(Math.max(0,data.indexOf("\n"))).trim()
+            data = "Date\tSaronRate\n"+data
+            let sample = data.substring(Math.max(0, data.indexOf("\n"))).trim()
+            sample = sample.substring(0, Math.max(0,sample.indexOf("\n"))).trim()
+            if(!sample.match(/^[12][0-9]{3}-[0-9]{2}-[0-9]{2}.-*[0-9]+\.[0-9]{6}$/))
+                throw (`Data sanple (${sample}) doesn't match the expected format`)
+            csv = d3.tsvParse(data)
             saronTable.setData(csv)
         }
         Loader.close()
@@ -286,21 +298,21 @@ function importFile() {
         uploading = true
         uploadFile(input.files[0])
     }
-    input.onblur = function(event) {
-        if(input.files.length) return true
-        Loader.close()
-    }
+    // input.onblur = function(event) {
+    //     if(input.files.length) return true
+    //     Loader.close()
+    // }
 
     function addDialogClosedListener(input, callback) {
-        var id = null
-        var active = false
-        var wrapper = function() { if (active) { active = false; callback() } }
-        var cleanup = function() { clearTimeout(id) }
-        var shedule = function(delay) { id = setTimeout(wrapper, delay) }
-        var onFocus = function() { cleanup(); shedule(1000) }
-        var onBlur = function() { cleanup() }
-        var onClick = function() { cleanup(); active = true}
-        var onChange = function() { cleanup(); shedule(0) }
+        let id = null
+        let active = false
+        let wrapper = function() { if (active) { active = false; callback() } }
+        let cleanup = function() { clearTimeout(id) }
+        let shedule = function(delay) { id = setTimeout(wrapper, delay) }
+        let onFocus = function() { cleanup(); shedule(1000) }
+        let onBlur = function() { cleanup() }
+        let onClick = function() { cleanup(); active = true}
+        let onChange = function() { cleanup(); shedule(0) }
         input.addEventListener('click', onClick)
         input.addEventListener('change', onChange)
         window.addEventListener('focus', onFocus)
@@ -324,4 +336,4 @@ function importFile() {
 upload.addEventListener('click', importFile)
 download.addEventListener('click', exportFile)
 
-initParamaeters()
+initParameters()
