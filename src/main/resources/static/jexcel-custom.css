@@ -180,7 +180,7 @@
 }
 
 /* Firefox specific */
-/*
+
 @-moz-document url-prefix() {
     .jexcel_content {
         padding-right: 1em;
@@ -188,12 +188,9 @@
 }
 
 .jexcel_content {
-    max-height: calc(100vh - 48px);
-    overflow-y: auto;
-    scrollbar-width: initial;
+    width: 305px;
 }
 
 .jexcel_content_with_search_filter {
     max-height: calc(100vh - 81px);
 }
-*/

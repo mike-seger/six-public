@@ -45,6 +45,10 @@ body::-webkit-scrollbar-corner { width: 0; }
     width: auto;
 }
 
+#saron-table {
+    width: 280px;
+}
+
 #saron-table tr:nth-child(even) {
     background-color: #eee;
 }
@@ -59,8 +63,8 @@ body::-webkit-scrollbar-corner { width: 0; }
 
 .grid-container {
     display: grid;
-    grid-template-columns: 0.8fr 2.8fr;
-    grid-gap: 20px;
+    grid-template-columns: 0.5fr 2.8fr;
+    grid-gap: 50px;
 }
 
 .input {

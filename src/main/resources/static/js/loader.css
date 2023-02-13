@@ -29,7 +29,7 @@
   box-sizing: border-box;
 }
 body.loader .loader_website span {
-  top: 18%;
+  top: 28%;
 }
 .loader_website > span {
   display: block;
