@@ -125,9 +125,11 @@ async function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
     const dates = rateMap.keys()
     doValidateRateMap(rateMap, startDate, endDate)
     if(dates.length==0) throw new RuntimeException("No rates found")
+    if(startDate >= endDate)
+        throw(`Startdate (${startDate}) must be before endDate (${endDate})`)
     if(startDate < dates[0])
         throw("Startdate is before first rate date: "+dates[0])
-    if(plusDays(endDate, -10) >dates[dates.length-1])
+    if(plusDays(endDate, -10) > dates[dates.length-1])
         throw("Enddate is after last rate date: "+dates[dates.length-1])
     if(all)
         range(0, diffDays(startDate, endDate)).forEach(
