@@ -6,14 +6,14 @@ function diffDays(isoDate1, isoDate2) {
     return localDate(isoDate1).diffDays(localDate(isoDate2))
 }
 
-function plusDays(isoDate, days) {
-    return localDate(isoDate).plusDays(days).toISONoTime()
-}
-
 function isoDate(date) {
     return date.getFullYear() + "-"
         +("0" + (date.getMonth() + 1)).slice(-2) +"-"
         +("0" + date.getDate()).slice(-2)
+}
+
+function plusDays(isoDateStr, days) {
+    return isoDate(localDate(isoDateStr).plusDays(days))
 }
 
 function getPrevPeriod(date, period) {

@@ -1,5 +1,5 @@
 import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
-import { plusDays, getPrevPeriod } from './js/dateUtils.mjs'
+import { getPrevPeriod } from './js/dateUtils.mjs'
 import { Loader } from './js/loader.mjs'
 
 const serverMessage = document.querySelector('jsuites-modal')
@@ -101,13 +101,50 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
             decimal:'.'
         },
     ],
-    onchange: ratesChanged,
+    onchange: cellChanged,
+    onbeforechange: function(el, cell, x, y, value) {
+        var oldValue = cell.getAttribute('title');
+        // do your stuff
+    },
+    
     onload: ratesChanged,
     onpaste: ratesChanged,
+    //onTableChange: onTableChange,
     width: '300px',
     rowResize: false,
     columnDrag: false,
-});
+})
+
+function cellChanged1(instance, cell, x, y, value) {
+    var cellName = jexcel.getColumnNameFromId([x,y])
+    console.error('New change on cell ' + cellName + ' to: ' + value + '')
+    ratesChanged(instance)
+}
+
+function cellChanged(instance, cell, x, y, value) {
+    jexcel.current.ignoreEvents = true;
+    if (x == 0) {
+        const name = jexcel.getColumnNameFromId([y, x]);
+        const newValue = value.substring(0, Math.min(10, value.length))
+        jexcel.current.setValue(name, newValue);
+    }
+    jexcel.current.ignoreEvents = false;
+    /*
+    this.table.ignoreEvents = true;
+    if (x == 0) {
+        const newValue = value.substring(0, Math.min(10, value.length))
+        //cell.innnerText = newValue//this.BRL(value) || 1;
+        //this.table.options.data[y][x] = newValue//this.BRL(value) || 1;
+        //cell.childNodes[0].data = newValue
+        cell.setValue(newValue)
+    }
+    */
+    ratesChanged(instance)
+    // else if (x == 3) {
+    //     // do the same as above
+    // }
+    this.table.ignoreEvents = false;
+}
 
 async function postJson(url, requestData) {
     try {
@@ -174,45 +211,9 @@ function messageDialog(content) {
 
 function storeResults(data) {
     try {
-        console.log(data)
-        let csv = null
-        if(data.startsWith("ISIN;CH0049613687;")) {
-            csv = data.replace(/^ISIN;CH0049613687;.*$/mg, "")
-                .replace(/^SYMBOL;SARON;;.*$/mg, "")
-                .replace(/^NAME;Swiss.*$/mg, "")
-                .trim()
-            if(! csv.startsWith("Date;Close;")) {
-                Loader.close()
-                messageDialog("Expected Date;Close;... in SIX SARON CSV")
-                return    
-            }
-            csv = csv.replace(/Date;Close;/mg, "Date;SaronRate;")
-                .replace(/; */mg, ",")
-                .replace(/^([^,]*),([^,]*),.*/mg, "$1,$2")
-                .replace(/^(..)\.(..)\.([12]...)/mg, "$3-$2-$1")
-            csv = d3.csvParse(csv)
-            if(csv.length < 365) {
-                Loader.close()
-                messageDialog("Expected more that 365 rows in SIX SARON CSV")
-                return                
-            }
-            saronTable.setData(csv)
-        } else {
-            if(data.indexOf("\n")<0) throw ("Expected '\\n' linefeeds in data")
-            if(data.indexOf(";")<0 && data.indexOf(",")<0 
-                && data.indexOf("\t")<0) throw ("Expected column separators ';,\\t' in data")
-            data = data.replace(";", "\t").replace(",", "\t").trim()
-            const header = data.substring(0, Math.max(0,data.indexOf("\n"))).trim()
-            if(!header.match(/[12][0-9]{3}-[0-9]{2}-[0-9]{2}.*/))
-                data = data.substring(Math.max(0,data.indexOf("\n"))).trim()
-            data = "Date\tSaronRate\n"+data
-            let sample = data.substring(Math.max(0, data.indexOf("\n"))).trim()
-            sample = sample.substring(0, Math.max(0,sample.indexOf("\n"))).trim()
-            if(!sample.match(/^[12][0-9]{3}-[0-9]{2}-[0-9]{2}.-*[0-9]+\.[0-9]{6}$/))
-                throw (`Data sanple (${sample}) doesn't match the expected format`)
-            csv = d3.tsvParse(data)
-            saronTable.setData(csv)
-        }
+        let csv = loadRates(data)
+        csv.sort((a, b) => -a.Date.localeCompare(b.Date))
+        saronTable.setData(csv)
         Loader.close()
     } catch(err) {
         Loader.close()
@@ -229,6 +230,13 @@ async function exportFile() {
 }
 
 async function exportFile0() {
+
+    function handleError(err) {
+        console.trace(err)
+        Loader.close()
+        messageDialog("Error occurred creating the file to download:\n"+err)
+    }
+
     try {
         const request = {
             all: true,
@@ -237,12 +245,6 @@ async function exportFile0() {
             startDate: startDate.value,
             endDate: endDate.value,
             rates: d3.csvFormatBody(saronTable.getData())
-        }
-
-        function handleError(err) {
-            console.error(err)
-            Loader.close()
-            messageDialog("Error occurred creating the file to download:\n"+err)
         }
         
         function processResponse(response, parse) {
@@ -298,10 +300,6 @@ function importFile() {
         uploading = true
         uploadFile(input.files[0])
     }
-    // input.onblur = function(event) {
-    //     if(input.files.length) return true
-    //     Loader.close()
-    // }
 
     function addDialogClosedListener(input, callback) {
         let id = null
