@@ -1,22 +1,9 @@
 import { localDate, plusDays, diffDays, isoDate } from './dateUtils.mjs'
 
-//TODO fix this browser/CLI compatibility workaround
-let csvParse = null
-let tsvParse = null
-if(typeof Window === 'undefined') {
-    //node doesn't like importing https://...
-    const myD3 = (await import('./d3-dsv@3.js')).default
-    csvParse = myD3.csvParse
-    tsvParse = myD3.tsvParse
-} else {
-    csvParse = d3.csvParse
-    tsvParse = d3.tsvParse
-} 
-
 function loadRates(data) {
-    let csv = null
+    let objArray = null
     if(data.startsWith("ISIN;CH0049613687;")) {
-        csv = data.replace(/^ISIN;CH0049613687;.*$/mg, "")
+        let csv = data.replace(/^ISIN;CH0049613687;.*$/mg, "")
             .replace(/^SYMBOL;SARON;;.*$/mg, "")
             .replace(/^NAME;Swiss.*$/mg, "")
             .trim()
@@ -26,8 +13,9 @@ function loadRates(data) {
             .replace(/; */mg, ",")
             .replace(/^([^,]*),([^,]*),.*/mg, "$1,$2")
             .replace(/^(..)\.(..)\.([12]...)/mg, "$3-$2-$1")
-        csv = csvParse(csv)
-        if(csv.length < 365)
+            .replaceAll(",", "\t")
+        objArray = tsvParse(csv)
+        if(objArray.length < 365)
             throw("Expected more that 365 rows in SIX SARON CSV")          
     } else {
         if(data.indexOf("\n")<0) throw ("Expected '\\n' linefeeds in data")
@@ -42,20 +30,21 @@ function loadRates(data) {
         sample = sample.substring(0, Math.max(0,sample.indexOf("\n"))).trim()
         if(!sample.match(/^[12][0-9]{3}-[0-9]{2}-[0-9]{2}.-*[0-9]+\.[0-9]{6}$/))
             throw (`Data sanple (${sample}) doesn't match the expected format`)
-        csv = tsvParse(data)
+        objArray = tsvParse(data)
     }
-    return csv
+    return objArray
 }
 
-Date.prototype.diffDays = function(date) {
-  var diff = date.setHours(12) - this.setHours(12)
-  return Math.round(diff/8.64e7)
-}
-
-Date.prototype.plusDays = function(days) {
-    const date = new Date(this)
-    date.setDate(date.getDate() + days)
-    return date
+function tsvParse(data) {
+    if(!data.startsWith("Date\tSaronRate\n")) 
+        throw ("Data must have a header line with:\n'Date\tSaronRate'")
+    return data.replaceAll("\r", "").split("\n")
+        .filter(line => !line.trim().startsWith("Date"))
+        .map(line => {
+            const tokens = line.split("\t")
+            return { Date: tokens[0], SaronRate: tokens[1] }
+        }
+    )
 }
 
 function range(start, end) {
@@ -90,7 +79,7 @@ function fillRates(csv) {
             throw `Rates must be on business days: ${isoDate(curDate)} is a ${weekDay==0?'Sunday':'Saturday'}`
     
         if(prevEntry != null) {
-            const missingDays = prevEntry.date.diffDays(curDate) - 1
+            const missingDays = diffDays(prevEntry.date, curDate) - 1
             if(missingDays>4) 
                 throw (`Too many missing days (${missingDays}) between:\n
                     ${isoDate(prevEntry.date)} and ${isoDate(curDate)}`)
@@ -100,8 +89,8 @@ function fillRates(csv) {
                 let weight = missingDays
                 let offset = 1
                 do {
-                    let fillDate = prevEntry.date.plusDays(offset++)
-                    map.set(isoDate(fillDate), { rate: rate, weight: weight-- })
+                    let fillDate = plusDays(prevEntry.date, offset++)
+                    map.set(fillDate, { rate: rate, weight: weight-- })
                 } while(offset<=missingDays)
             }
         }
@@ -140,7 +129,7 @@ function compoundRate(rateMap, startDate, endDate, validateRateMap = true) {
     return { startDate: startDate, endDate: endDate, value: formattedRound(result, 4) }
 }
 
-async function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
+function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
     const compoundRates = []
     const dates = rateMap.keys()
     doValidateRateMap(rateMap, startDate, endDate)
@@ -167,6 +156,18 @@ async function compoundRates(rateMap, startDate, endDate, all, allStartDates) {
     else compoundRates.push(compoundRate(rateMap, startDate, endDate));
     compoundRates.sort((a, b) => (a.startDate+a.endDate).localeCompare(b.startDate+b.endDate))
     return compoundRates
+}
+
+if(typeof importScripts === 'function') {
+    self.addEventListener('message', function(e) {
+        let p = e.data
+        try {
+            const procData = compoundRates(p.rateMap, p.startDate, p.endDate, p.all, p.allStartDates)
+            postMessage({ type: 'saronCalculator', procData: procData, parse: false })
+        } catch(err) {
+            postMessage({ type: 'saronCalculator',  error: err })
+        }
+    }, false)
 }
 
 export { loadRates, fillRates, compoundRate, compoundRates }

@@ -1,6 +1,8 @@
 import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
-import { getPrevPeriod, plusDays, isoDate } from './js/dateUtils.mjs'
+import { getPrevPeriod, plusDays } from './js/dateUtils.mjs'
 import { Loader } from './js/spinner.mjs'
+
+let saronCalculator = null
 
 const serverMessage = document.querySelector('jsuites-modal')
 const serverText = document.getElementById('servertext')
@@ -103,25 +105,13 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
             decimal:'.'
         },
     ],
-    onchange: cellChanged,
-    onbeforechange: function(el, cell, x, y, value) {
-        var oldValue = cell.getAttribute('title');
-        // do your stuff
-    },
-    
+    onchange: cellChanged,   
     onload: ratesChanged,
     onpaste: ratesChanged,
-    //onTableChange: onTableChange,
     width: '300px',
     rowResize: false,
     columnDrag: false,
 })
-
-function cellChanged1(instance, cell, x, y, value) {
-    var cellName = jexcel.getColumnNameFromId([x,y])
-    console.error('New change on cell ' + cellName + ' to: ' + value + '')
-    ratesChanged(instance)
-}
 
 function cellChanged(instance, cell, x, y, value) {
     jexcel.current.ignoreEvents = true;
@@ -131,21 +121,7 @@ function cellChanged(instance, cell, x, y, value) {
         jexcel.current.setValue(name, newValue);
     }
     jexcel.current.ignoreEvents = false;
-    /*
-    this.table.ignoreEvents = true;
-    if (x == 0) {
-        const newValue = value.substring(0, Math.min(10, value.length))
-        //cell.innnerText = newValue//this.BRL(value) || 1;
-        //this.table.options.data[y][x] = newValue//this.BRL(value) || 1;
-        //cell.childNodes[0].data = newValue
-        cell.setValue(newValue)
-    }
-    */
     ratesChanged(instance)
-    // else if (x == 3) {
-    //     // do the same as above
-    // }
-    this.table.ignoreEvents = false;
 }
 
 async function postJson(url, requestData) {
@@ -232,7 +208,6 @@ async function exportFile() {
 }
 
 async function exportFile0() {
-
     function handleError(err) {
         console.trace(err)
         Loader.close()
@@ -262,7 +237,7 @@ async function exportFile0() {
             if(procData != null) {
                 const result = d3.csvFormat(procData)
                 let mimetype = "text/csv"
-                const timeStamp =new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-');
+                const timeStamp = new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-');
                 const dlLink = document.createElement('a')
                 dlLink.href = 'data:'+mimetype+';charset=utf-8,' + encodeURI(result)
                 dlLink.target = '_blank'
@@ -280,10 +255,34 @@ async function exportFile0() {
             data.splice(0, 0, ["Date", "SaronRate"]);
             const csv = loadRates(d3.csvFormatBody(data))
             const rateMap = fillRates(csv)
-            compoundRates(rateMap, startDate.value, 
-                endDate.value, request.all, request.allStartDates)
-                .then((procData) => processResponse(procData, false))
-                .catch((err) => handleError(err))
+
+            function handleReponse(e) {
+                try {
+                    if(e.data.type === 'saronCalculator') {
+                        if(! e.data.error)
+                            processResponse(e.data.procData, e.data.parse)
+                        else handleError(e.data.error)
+                    } else handleError("Invalid worker response: "+e.data)
+                } catch(err) { handleError("Unexpected error occurred: "+err) }
+                saronCalculator.terminate();
+                saronCalculator = null;
+            }
+
+            if(saronCalculator == null) {
+                saronCalculator = new Worker('./js/saronCompoundCalculator.mjs', { type: "module" })
+                saronCalculator.addEventListener("message", handleReponse, false)
+                saronCalculator.postMessage({
+                    rateMap: rateMap, 
+                    startDate: startDate.value,
+                    endDate: endDate.value,
+                    all: request.all, 
+                    allStartDates: request.allStartDates
+                })
+            } else throw ("Error starting a second SaronCalculator")
+            // compoundRates(rateMap, startDate.value, 
+            //     endDate.value, request.all, request.allStartDates)
+            //     .then((procData) => processResponse(procData, false))
+            //     .catch((err) => handleError(err))
         } else {
             postJson("api/v1", JSON.stringify(request))
                 .then((procData) => processResponse(procData, true))
