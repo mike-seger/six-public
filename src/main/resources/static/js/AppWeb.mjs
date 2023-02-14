@@ -152,7 +152,7 @@ async function postJson(url, requestData) {
 		return data
 	} catch (e) {
 		console.log('error', e)
-		messageDialog("Error sending request: "+e.message)
+		messageDialog("Error sending request:\n"+e)
 		return null
 	}
 }
@@ -327,8 +327,8 @@ async function importResource(location) {
 	} catch (e) {
 		console.log('error', e)
 		Spinner.close()
-		messageDialog("Error loading resource: "+e.message)
-		throw("Error loading resource: "+e.message)
+		messageDialog("Error loading resource:\n"+e)
+		throw("Error loading resource:\n"+e)
 	}
 }
 
