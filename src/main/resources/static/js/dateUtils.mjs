@@ -1,9 +1,12 @@
 function localDate(isoDateString) {
+    if(typeof isoDateString.getMonth === 'function')
+        isoDateString = isoDate(isoDateString)
     return new Date(isoDateString.substring(0,10) + 'T00:00:00.000Z')
 }
 
 function diffDays(isoDate1, isoDate2) {
-    return localDate(isoDate1).diffDays(localDate(isoDate2))
+    var diff = localDate(isoDate2).setHours(12) - localDate(isoDate1).setHours(12)
+    return Math.round(diff/8.64e7)
 }
 
 function isoDate(date) {
@@ -13,10 +16,15 @@ function isoDate(date) {
 }
 
 function plusDays(isoDateStr, days) {
-    return isoDate(localDate(isoDateStr).plusDays(days))
+    if(typeof isoDateStr.getMonth === 'function')
+        isoDateStr = isoDate(isoDateStr)
+    const date = localDate(isoDateStr)
+    date.setDate(date.getDate() + days)
+    return isoDate(date)
 }
 
 function getPrevPeriod(date, period) {
+    date = localDate(date)
     const month = date.getMonth()
     const currentQuarterMonth = month - month % period
     let prevPeriodMonth = currentQuarterMonth - period

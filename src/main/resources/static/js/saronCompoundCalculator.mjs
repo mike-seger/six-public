@@ -33,7 +33,7 @@ function loadRates(data) {
         if(data.indexOf("\n")<0) throw ("Expected '\\n' linefeeds in data")
         if(data.indexOf(";")<0 && data.indexOf(",")<0 
             && data.indexOf("\t")<0) throw ("Expected column separators ';,\\t' in data")
-        data = data.replace(";", "\t").replace(",", "\t").trim()
+        data = data.replaceAll(";", "\t").replaceAll(",", "\t").trim()
         const header = data.substring(0, Math.max(0,data.indexOf("\n"))).trim()
         if(!header.match(/[12][0-9]{3}-[0-9]{2}-[0-9]{2}.*/))
             data = data.substring(Math.max(0,data.indexOf("\n"))).trim()

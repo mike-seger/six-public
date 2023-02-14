@@ -1,5 +1,5 @@
-/*loader_website*/
-.loader_website {
+/*spinner_website*/
+.spinner_website {
   position: fixed;
   top: 0;
   left: 0px;
@@ -21,17 +21,17 @@
   -ms-box-sizing: border-box;
   box-sizing: border-box;
 }
-.loader_website * {
+.spinner_website * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   -o-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
 }
-body.loader .loader_website span {
+body.spinner .spinner_website span {
   top: 28%;
 }
-.loader_website > span {
+.spinner_website > span {
   display: block;
   width: 48px;
   height: 48px;
@@ -59,13 +59,13 @@ body.loader .loader_website span {
   -ms-box-shadow: #000 0px 5px 10px -5px;
   box-shadow: #000 0px 5px 10px -5px;
 }
-.loader_website > span > svg {
+.spinner_website > span > svg {
   fill: transparent;
   stroke: #1a73e8;
   stroke-width: 5;
-  animation: loader_dash 2s ease infinite, loader_rotate 2s linear infinite;
+  animation: spinner_dash 2s ease infinite, spinner_rotate 2s linear infinite;
 }
-@keyframes loader_dash {
+@keyframes spinner_dash {
   0% {
     stroke-dasharray: 1, 95;
     stroke-dashoffset: 0;
@@ -79,7 +79,7 @@ body.loader .loader_website span {
     stroke-dashoffset: -93;
   }
 }
-@keyframes loader_rotate {
+@keyframes spinner_rotate {
   0% {
     transform: rotate(0deg);
   }
@@ -87,4 +87,4 @@ body.loader .loader_website span {
     transform: rotate(360deg);
   }
 }
-/*loader_website*/
+/*spinner_website*/

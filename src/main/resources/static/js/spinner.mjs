@@ -1,10 +1,10 @@
 /* Loader */
 var Loader = {
 
-  loader: null,
+  spinner: null,
   body: null,
   html: '<span><svg width="40" height="40" version="1.1" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15"></svg></span>',
-  cssClass: "loader",
+  cssClass: "spinner",
   check: function () {
     if (this.body == null) {
       this.body = document.body;
@@ -13,11 +13,11 @@ var Loader = {
   open: function () {
     this.check();
     if (!this.isOpen()) {
-      this.loader = document.createElement("div");
-      this.loader.setAttribute("id", "loader");
-      this.loader.classList.add("loader_website");
-      this.loader.innerHTML = this.html;
-      this.body.append(this.loader);
+      this.spinner = document.createElement("div");
+      this.spinner.setAttribute("id", "spinner");
+      this.spinner.classList.add("spinner_website");
+      this.spinner.innerHTML = this.html;
+      this.body.append(this.spinner);
       this.body.classList.add(this.cssClass);
     }
     return this;
@@ -26,7 +26,7 @@ var Loader = {
     this.check();
     if (this.isOpen()) {
       this.body.classList.remove(this.cssClass);
-      this.loader.remove();
+      this.spinner.remove();
     }
     return this;
   },

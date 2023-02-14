@@ -1,6 +1,6 @@
 import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
-import { getPrevPeriod } from './js/dateUtils.mjs'
-import { Loader } from './js/loader.mjs'
+import { getPrevPeriod, plusDays, isoDate } from './js/dateUtils.mjs'
+import { Loader } from './js/spinner.mjs'
 
 const serverMessage = document.querySelector('jsuites-modal')
 const serverText = document.getElementById('servertext')
@@ -15,6 +15,7 @@ const download = document.getElementById('download')
 const downloadParameters = document.getElementById('download-parameters')
 const customParameters = document.getElementById('custom-parameters')
 let maxDate = new Date()
+let minDate = maxDate
 let chooserData = createChooserData()
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
@@ -27,7 +28,6 @@ const downloadChooser = jSuites.dropdown(document.getElementById('download-choos
 
 function createChooserData() {
     let date = maxDate
-    date.setDate(date.getDate() + 1)
     const prevQuarter = getPrevPeriod(date, 3)
     const prevSemester = getPrevPeriod(date, 6)
     const prevYear = getPrevPeriod(date, 12)
@@ -36,6 +36,7 @@ function createChooserData() {
         { group:'Predefined Ranges', value: `${prevQuarter.start} ${prevQuarter.end}`, text: `Q${prevQuarter.n} '${prevQuarter.year99} (${prevQuarter.sMonth}-${prevQuarter.eMonth})` },
         { group:'Predefined Ranges', value: `${prevSemester.start} ${prevSemester.end}`, text: `Q${semQuarter}+Q${semQuarter+1} '${prevSemester.year99} (${prevSemester.sMonth}-${prevSemester.eMonth})` },
         { group:'Predefined Ranges', value: `${prevYear.start} ${prevYear.end}`, text: `${prevYear.year} (${prevYear.sMonth}-${prevYear.eMonth})` },
+        { group:'Predefined Ranges', value: `${minDate} ${maxDate}`, text: `All (${minDate} - ${maxDate})` },
         { group:'Custom Range', value:'custom', text:'Range...' },
     ]
 
@@ -61,7 +62,8 @@ function ratesChanged(instance) {
     if(validData.length>0) {
         const dates = validData.map(rate => rate[0])
         dates.sort()
-        maxDate = new Date(dates[dates.length-1].substring(0,10))
+        minDate = dates[0].substring(0,10)
+        maxDate = plusDays(new Date(dates[dates.length-1].substring(0,10)), 1)
         chooserData = createChooserData()
         downloadChooser.setData(chooserData)
         downloadChooserChanged(downloadChooser)
@@ -70,7 +72,7 @@ function ratesChanged(instance) {
     } else {
         downloadParameters.style.display = "none"
     }
-    console.log("Data: "+validData)
+    //console.log("Data: "+validData)
 }
 
 const saronTable = jspreadsheet(document.getElementById('saron-table'), {
