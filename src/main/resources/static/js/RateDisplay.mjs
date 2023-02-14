@@ -1,12 +1,13 @@
 let chart = createChart() 
 
+Number.prototype.round = function(decimals) {
+	if (this < 0) return -(-this).round(decimals)
+	return +(Math.round(this + "e+" + decimals)  + "e-" + decimals)
+}
+
 function createChart() {
 	var options = {
 		series: [],
-		// series: [{
-		// 	name: 'SARON Rates',
-		// 	data: dates
-		// }],
 		chart: {
 			type: 'area',
 			stacked: false,
@@ -43,7 +44,7 @@ function createChart() {
 		yaxis: {
 			labels: {
 				formatter: function(val) {
-					return val; //(val / 1000000).toFixed(0);
+					return Number(val).round(6); //(val / 1000000).toFixed(0);
 				},
 			},
 			title: {

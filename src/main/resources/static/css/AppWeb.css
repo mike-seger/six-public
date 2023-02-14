@@ -125,9 +125,11 @@ body::-webkit-scrollbar-corner { width: 0; }
 }
 
 #rate-display {
-	background-color: red;
+	background-color: white;
 	width: calc(100% - 20px);
 	height: 300px;;
+	margin: 0 auto;
+	box-shadow: 0 22px 35px -16px rgba(0,0,0, 0.1);
 }
 
 #container {

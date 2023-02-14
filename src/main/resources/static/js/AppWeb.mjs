@@ -1,11 +1,10 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { getPrevPeriod, plusDays } from './DateUtils.mjs'
-import { updateRateDisplay } from './RateDisplay4.mjs'
+import { updateRateDisplay } from './RateDisplay.mjs'
 import { Spinner } from './Spinner.mjs'
 
 let saronCalculator = null
 
-//const serverMessage = document.querySelector('jsuites-modal')
 const serverMessage = document.getElementById('serverMessage')
 const serverText = document.getElementById('serverText')
 const saronInfoMessage = document.getElementById('saronInfoMessage')
