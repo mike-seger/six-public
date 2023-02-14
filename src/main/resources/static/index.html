@@ -6,7 +6,6 @@
     <script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
     <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
     <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="jexcel-custom.css" type="text/css" />
     <link rel="stylesheet" href="js/spinner.css" />
     <link rel="stylesheet" href="style.css" type="text/css" />
@@ -49,13 +48,6 @@
 </jsuites-modal>
 
 <script src="ui.mjs" type="module"></script>
-<script type="module">
-    import { plusDays, getPrevPeriod } from './js/dateUtils.mjs'
 
-    let date = new Date()
-    date.setDate(date.getDate() + 1)
-    const prevQuarter = getPrevPeriod(date, 3)
-    const prevSemester = getPrevPeriod(date, 6)
-</script>
 </body>
 </html>

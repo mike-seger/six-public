@@ -124,12 +124,6 @@
     border-right: 1px solid #ccc;
 }
 
-/*
-.jexcel_container *  {
-    box-shadow: none !important;
-}
-*/
-
 .jexcel .jexcel_overflow {
     border: 0;
 }
