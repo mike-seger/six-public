@@ -318,12 +318,13 @@ async function importFile() {
 async function importResource(location) {
 	try {
 		const response = await fetch(location)
-		if(response.status != 200) throw (data)
+		if(response.status != 200) throw (`Received ${response.status} status from server while loading ${location}`)
 		const data = await response.text()
 		return data
 	} catch (e) {
 		console.log('error', e)
-		throw("Error sending request: "+e.message)
+		messageDialog("Error loading resource: "+e.message)
+		throw("Error loading resource: "+e.message)
 	}
 }
 
