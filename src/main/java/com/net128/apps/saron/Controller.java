@@ -32,9 +32,12 @@ public class Controller {
 
 	@PostMapping
 	public List<CompoundRate> calculateCompoundSaron(@RequestBody CompoundRateCalculatorParameters parameters) {
+		long started = System.currentTimeMillis();
 		parameters.rates=parameters.rates.replace("\\n", "\n");
 		try (Reader reader = new StringReader(parameters.rates)) {
-			return compoundRateCalculator.compoundRates(reader, parameters.startDate, parameters.endDate, parameters.all, parameters.allStartDates, parameters.rational);
+			List<CompoundRate> result =  compoundRateCalculator.compoundRates(reader, parameters.startDate, parameters.endDate, parameters.all, parameters.allStartDates, parameters.rational);
+			log.info("Time to process calculateCompoundSaron: {} ms", (System.currentTimeMillis() - started));
+			return result;
 		} catch(Exception e) {
 			throw new RuntimeException("Failed to calculate rates for\n: "+parameters.rates, e);
 		}
