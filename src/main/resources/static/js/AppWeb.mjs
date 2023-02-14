@@ -16,6 +16,7 @@ const offline = document.getElementById('offline')
 const offlineParameter = document.getElementById('offline-parameter')
 const importButton = document.getElementById('import')
 const exportButton = document.getElementById('export')
+const linkTable = document.getElementById('link-table')
 
 const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
@@ -375,6 +376,14 @@ function importFileDialog() {
 
 importButton.addEventListener('click', importFile)
 exportButton.addEventListener('click', exportFile)
-saronInfo.addEventListener('click', function () {saronInfoMessage.modal.open()})
+saronInfo.addEventListener('click', function (e) {
+	const box = saronInfoMessage.querySelector("div")
+	saronInfoMessage.modal.open()
+	box.style.position = "absolute";
+	const x = e.clientX + 15 + box.clientWidth/2;
+	const y = e.clientY + 15 + box.clientHeight/2;
+	box.style.left = `${x}px`;
+	box.style.top = `${y}px`;
+})
 
 initParameters()
