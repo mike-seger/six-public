@@ -1,8 +1,8 @@
 import fs from 'fs'
 import os from 'os'
 
-import { loadRates, fillRates, compoundRates } from './saronCompoundCalculator.mjs'
-import { download } from './fileDownloader.mjs'
+import { loadRates, fillRates, compoundRates } from './SaronCompoundCalculator.mjs'
+import { download } from './FileDownloader.mjs'
 
 if (process.argv.length < 4) {
     console.error("Usage: saronCompound <startDate> <endDate> [all [allStartDates]]")

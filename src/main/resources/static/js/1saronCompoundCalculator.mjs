@@ -1,4 +1,4 @@
-import { localDate, plusDays, diffDays, isoDate } from './dateUtils.mjs'
+import { localDate, plusDays, diffDays, isoDate } from './DateUtils.mjs'
 
 function loadRates(data) {
     let objArray = null

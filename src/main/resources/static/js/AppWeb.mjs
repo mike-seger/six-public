@@ -1,6 +1,6 @@
-import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
-import { getPrevPeriod, plusDays } from './js/dateUtils.mjs'
-import { Spinner } from './js/spinner.mjs'
+import { loadRates, fillRates, compoundRates } from './SaronCompoundCalculator.mjs'
+import { getPrevPeriod, plusDays } from './DateUtils.mjs'
+import { Spinner } from './Spinner.mjs'
 
 let saronCalculator = null
 
@@ -269,7 +269,7 @@ async function exportFile0() {
             }
 
             if(saronCalculator == null) {
-                saronCalculator = new Worker('./js/saronCompoundCalculator.mjs', { type: "module" })
+                saronCalculator = new Worker('./js/SaronCompoundCalculator.mjs', { type: "module" })
                 saronCalculator.addEventListener("message", handleReponse, false)
                 saronCalculator.postMessage({
                     rateMap: rateMap, 
