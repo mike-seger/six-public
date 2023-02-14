@@ -1,75 +1,75 @@
 body, html {
-    overflow: hidden;
-    padding: 0;
-    margin: 6px;
-    border: 0;
+	overflow: hidden;
+	padding: 0;
+	margin: 6px;
+	border: 0;
 }
 
 html {
-    font-family: sans-serif;
+	font-family: sans-serif;
 }
 
 body {
-    overflow-x: auto;
-    width: 100%;
+	overflow-x: auto;
+	width: 100%;
 }
 
 body::-webkit-scrollbar {
-    min-width: 10px;
-    min-height: 10px;
-    color: #ccc;
-    background-color: #ccc;
+	min-width: 10px;
+	min-height: 10px;
+	color: #ccc;
+	background-color: #ccc;
 }
 
 body::-webkit-scrollbar-thumb {
-    min-width: 10px;
-    min-height: 10px;
-    background-color: #aaa;
+	min-width: 10px;
+	min-height: 10px;
+	background-color: #aaa;
 }
 
 body::-webkit-scrollbar-button { width: 0; }
 body::-webkit-scrollbar-corner { width: 0; }
 
 .container {
-    height: calc(100vh - 30px);
-    flex-direction: column;
-    padding: 9px;
+	height: calc(100vh - 30px);
+	flex-direction: column;
+	padding: 9px;
 }
 
 .content {
-    flex: 1;
-    box-sizing: border-box;
+	flex: 1;
+	box-sizing: border-box;
 }
 
 #toolbar {
-    width: auto;
+	width: auto;
 }
 
 #saron-table {
-    width: 280px;
+	width: 280px;
 }
 
 #saron-table tr:nth-child(even) {
-    background-color: #eee;
+	background-color: #eee;
 }
 
 #uploadtools {
-    margin-bottom: 14px;
+	margin-bottom: 14px;
 }
 
 .jtoolbar .jtoolbar-label, body {
-    font-family: Verdana;
+	font-family: Verdana;
 }
 
 .grid-container {
-    display: grid;
-    grid-template-columns: 0.5fr 2.8fr;
-    grid-gap: 50px;
+	display: grid;
+	grid-template-columns: 0.5fr 2.8fr;
+	grid-gap: 50px;
 }
 
 .input {
-    border: 1px solid rgb(161, 161, 161);
-    width: 110px;
+	border: 1px solid rgb(161, 161, 161);
+	width: 110px;
 }
 
 .btn {
@@ -94,22 +94,22 @@ body::-webkit-scrollbar-corner { width: 0; }
 }
 
 #custom-parameters {
-    margin-left: 10px;
-    display: inline-block;
+	margin-left: 10px;
+	display: inline-block;
 }
 
 #custom-parameters * td {
-    padding-right: 15px;
+	padding-right: 15px;
 }
 
 #download-parameters {
-    margin-top: 20px;
+	margin-top: 20px;
 }
 
 #download-parameters > * {
-    vertical-align: top;
+	vertical-align: top;
 }
 
 .text-element {
-    line-height: 25px;
+	line-height: 25px;
 }
