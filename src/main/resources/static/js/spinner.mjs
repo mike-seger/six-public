@@ -1,5 +1,5 @@
-/* Loader */
-var Loader = {
+/* Spinner */
+var Spinner = {
 
   spinner: null,
   body: null,
@@ -7,54 +7,53 @@ var Loader = {
   cssClass: "spinner",
   check: function () {
     if (this.body == null) {
-      this.body = document.body;
+      this.body = document.body
     }
   },
   open: function () {
-    this.check();
+    this.check()
     if (!this.isOpen()) {
-      this.spinner = document.createElement("div");
-      this.spinner.setAttribute("id", "spinner");
-      this.spinner.classList.add("spinner_website");
-      this.spinner.innerHTML = this.html;
-      this.body.append(this.spinner);
-      this.body.classList.add(this.cssClass);
+      this.spinner = document.createElement("div")
+      this.spinner.setAttribute("id", "spinner")
+      this.spinner.classList.add("spinner_website")
+      this.spinner.innerHTML = this.html
+      this.body.append(this.spinner)
+      this.body.classList.add(this.cssClass)
     }
-    return this;
+    return this
   },
   close: function () {
-    this.check();
+    this.check()
     if (this.isOpen()) {
       this.body.classList.remove(this.cssClass);
-      this.spinner.remove();
+      this.spinner.remove()
     }
-    return this;
+    return this
   },
   isOpen: function () {
-    this.check();
+    this.check()
     return this.body.classList.contains(this.cssClass);
   },
   ifOpened: function (callback, close) {
-    this.check();
+    this.check()
     if (this.isOpen()) {
       if (!!close) this.close();
       if (typeof callback === "function") {
-        callback();
+        callback()
       }
     }
-    return this;
+    return this
   },
   ifClosed: function (callback, open) {
-    this.check();
+    this.check()
     if (!this.isOpen()) {
-      if (!!open) this.open();
+      if (!!open) this.open()
       if (typeof callback === "function") {
-        callback();
+        callback()
       }
     }
-    return this;
+    return this
   },
-};
+}
 
-
-export { Loader }
+export { Spinner }

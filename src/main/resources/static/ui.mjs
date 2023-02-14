@@ -1,6 +1,6 @@
 import { loadRates, fillRates, compoundRates } from './js/saronCompoundCalculator.mjs'
 import { getPrevPeriod, plusDays } from './js/dateUtils.mjs'
-import { Loader } from './js/spinner.mjs'
+import { Spinner } from './js/spinner.mjs'
 
 let saronCalculator = null
 
@@ -192,15 +192,15 @@ function storeResults(data) {
         let csv = loadRates(data)
         csv.sort((a, b) => -a.Date.localeCompare(b.Date))
         saronTable.setData(csv)
-        Loader.close()
+        Spinner.close()
     } catch(err) {
-        Loader.close()
+        Spinner.close()
         messageDialog("Error occurred processing the uploaded rates file:\n"+err)        
     }
 }
 
 async function exportFile() {
-    Loader.open()
+    Spinner.open()
     console.time('Execution Time')
     setTimeout(function() {
         exportFile0()
@@ -210,7 +210,7 @@ async function exportFile() {
 async function exportFile0() {
     function handleError(err) {
         console.trace(err)
-        Loader.close()
+        Spinner.close()
         messageDialog("Error occurred creating the file to download:\n"+err)
     }
 
@@ -227,11 +227,11 @@ async function exportFile0() {
         function processResponse(response, parse) {
             let procData = null
             if(response != null && parse) {
-                console.log(response)
+                //console.log(response)
                 procData = JSON.parse(response)
             } else if(response != null) {
                 procData = response
-                console.log(JSON.stringify(procData).replaceAll(",{","\n,{"))
+                //console.log(JSON.stringify(procData).replaceAll(",{","\n,{"))
             }
 
             if(procData != null) {
@@ -247,7 +247,7 @@ async function exportFile0() {
             }
 
             console.timeEnd('Execution Time')
-            Loader.close()
+            Spinner.close()
         }
 
         if(window.location.host.indexOf("mike-seger.github.io")>=0 || offline.checked) {
@@ -279,10 +279,6 @@ async function exportFile0() {
                     allStartDates: request.allStartDates
                 })
             } else throw ("Error starting a second SaronCalculator")
-            // compoundRates(rateMap, startDate.value, 
-            //     endDate.value, request.all, request.allStartDates)
-            //     .then((procData) => processResponse(procData, false))
-            //     .catch((err) => handleError(err))
         } else {
             postJson("api/v1", JSON.stringify(request))
                 .then((procData) => processResponse(procData, true))
@@ -292,7 +288,7 @@ async function exportFile0() {
 }
 
 function importFile() {
-    Loader.open()
+    Spinner.open()
     let input = document.createElement('input')
     let uploading = false
     input.type = 'file'
@@ -325,7 +321,7 @@ function importFile() {
     }
 
     addDialogClosedListener(input, function() {
-        if(!uploading) Loader.close()
+        if(!uploading) Spinner.close()
         console.log('File dialog closed!')
     })
 
