@@ -310,7 +310,7 @@ async function importFile() {
 		importFileDialog()
 	} else if(mode.startsWith("Local ")) {
 		const file = mode.substring("Local ".length)
-		const data = await importResource("../data/"+file)
+		const data = await importResource("./data/"+file)
 		storeResults(data)
 	}
 }
