@@ -1,5 +1,6 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { getPrevPeriod, plusDays } from './DateUtils.mjs'
+import { updateRateDisplay } from './RateDisplay2.mjs'
 import { Spinner } from './Spinner.mjs'
 
 let saronCalculator = null
@@ -16,7 +17,6 @@ const offline = document.getElementById('offline')
 const offlineParameter = document.getElementById('offline-parameter')
 const importButton = document.getElementById('import')
 const exportButton = document.getElementById('export')
-const linkTable = document.getElementById('link-table')
 
 const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
@@ -75,6 +75,11 @@ function initParameters() {
 function ratesChanged(instance) {
 	console.log("Rates changed")
 	const data = instance.jexcel.getData()
+
+	setTimeout(function() {
+		updateRateDisplay(data)
+	}, 100)
+
 	const validData = data
 		.filter(rate => rate.length == 2)
 		.filter(rate => rate[0].match(/^[12]...-..-...*/))
@@ -206,7 +211,7 @@ async function exportFile() {
 	console.time('Execution Time')
 	setTimeout(function() {
 		exportFile0()
-	}, 100);
+	}, 100)
 }
 
 async function exportFile0() {
@@ -377,8 +382,8 @@ function importFileDialog() {
 importButton.addEventListener('click', importFile)
 exportButton.addEventListener('click', exportFile)
 saronInfo.addEventListener('click', function (e) {
-	const box = saronInfoMessage.querySelector("div")
 	saronInfoMessage.modal.open()
+	const box = saronInfoMessage.querySelector("div")
 	box.style.position = "absolute";
 	const x = e.clientX + 15 + box.clientWidth/2;
 	const y = e.clientY + 15 + box.clientHeight/2;

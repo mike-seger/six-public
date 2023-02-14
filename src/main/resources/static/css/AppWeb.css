@@ -123,3 +123,15 @@ body::-webkit-scrollbar-corner { width: 0; }
 	background-repeat: no-repeat;
 	background-size: cover;
 }
+
+#rate-display {
+	background-color: red;
+	width: calc(100% - 20px);
+	height: 300px;;
+}
+
+#container {
+	background-color: red;
+	width: calc(100% - 20px);
+	height: 300px;;
+}
