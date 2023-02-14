@@ -1,6 +1,6 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { getPrevPeriod, plusDays } from './DateUtils.mjs'
-import { updateRateDisplay } from './RateDisplay2.mjs'
+import { updateRateDisplay } from './RateDisplay4.mjs'
 import { Spinner } from './Spinner.mjs'
 
 let saronCalculator = null
