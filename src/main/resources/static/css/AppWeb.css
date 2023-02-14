@@ -53,7 +53,7 @@ body::-webkit-scrollbar-corner { width: 0; }
 	background-color: #eee;
 }
 
-#uploadtools {
+#importtools {
 	margin-bottom: 14px;
 }
 
@@ -102,14 +102,24 @@ body::-webkit-scrollbar-corner { width: 0; }
 	padding-right: 15px;
 }
 
-#download-parameters {
+#export-parameters {
 	margin-top: 20px;
 }
 
-#download-parameters > * {
+#export-parameters > * {
 	vertical-align: top;
 }
 
 .text-element {
 	line-height: 25px;
+}
+
+.textButton {
+	border: 0;
+	width: 26px;
+	height: 26px;
+	background-color: white;
+	background-image: url(../img/info.svg);
+	background-repeat: no-repeat;
+	background-size: cover;
 }

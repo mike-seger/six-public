@@ -1,53 +1,63 @@
 <html>
-<head>
-	<script src="https://jsuites.net/v4/jsuites.js"></script>
-	<script src="https://jsuites.net/v4/jsuites.webcomponents.js"></script>
-	<script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
-	<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
-	<link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
-	<link rel="stylesheet" href="css/Jexcel-Custom.css" type="text/css" />
-	<link rel="stylesheet" href="js/Spinner.css" />
-	<link rel="stylesheet" href="css/AppWeb.css" type="text/css" />
-</head>
+	<head>
+		<script src="https://jsuites.net/v4/jsuites.js"></script>
+		<script src="https://jsuites.net/v4/jsuites.webcomponents.js"></script>
+		<script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
+		<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+		<link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+		<link rel="stylesheet" href="css/Jexcel-Custom.css" type="text/css" />
+		<link rel="stylesheet" href="css/Spinner.css" type="text/css" />
+		<link rel="stylesheet" href="css/AppWeb.css" type="text/css" />
+	</head>
 
 <body>
 
-<input id="upload" type="button" class="btn" value="Upload"> SARON Rates
-<br /><br />
+	<input id="import" type="button" class="btn" value="Import">
+	<div id="import-chooser"></div>
+	<button id="saronInfo" class="textButton">&nbsp;</button>
+	<br /><br />
 
-<div class="grid-container">
-	<div id="saron-table"></div>
-	<div id="link-table">
-		SARON rate sources<br />
-		<a href="https://www.six-group.com/exchanges/downloads/indexdata/hsrron.csv"
-		>SARON rates 1999 - present (SIX)</a>
-		<br /><br />
-		More information<br />
-		<a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/compound_rates_en.html"
-		>SARON Compound Rates</a><br />
-		<a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/reference_rates_en.html" target="_blank"
-		>Swiss Refernce Rates</a>
+	<div class="grid-container">
+		<div id="saron-table"></div>
 	</div>
-</div>
 
-<div id="download-parameters">
-	<input id="download" type="button" class="btn" value="Download"><span class="text-element">Compound Rates</span>
-	<div id="download-chooser"></div>
-	<div id="custom-parameters">
-		<table>
-			<tr><td>Start Date</td><td><input class="input" id='startdate'/></td></tr>
-			<tr><td>End Date</td><td><input class="input" id='enddate'/></td></tr>
-			<tr><td>All Start Dates</td><td><input type="checkbox" class="btn" id='allStartDates' /></td></tr>
-			<tr id="offline-parameter"><td>Offline</td><td><input type="checkbox" class="btn" id='offline' /></td></tr>
-		</table>
+	<div id="export-parameters">
+		<input id="export" type="button" class="btn" value="Export">
+		<span class="text-element">Compound Rates</span>
+		<div id="export-chooser"></div>
+		<div id="custom-parameters">
+			<table>
+				<tr><td>Start Date</td><td><input class="input" id='startdate'/></td></tr>
+				<tr><td>End Date</td><td><input class="input" id='enddate'/></td></tr>
+				<tr><td>All Start Dates</td><td><input type="checkbox" class="btn" id='allStartDates' /></td></tr>
+				<tr id="offline-parameter"><td>Offline</td>
+					<td><input type="checkbox" class="btn" id='offline' /></td></tr>
+			</table>
+		</div>
 	</div>
-</div>
-<jsuites-modal title="Message" closed="true" width="600" height="400">
-	<div id="servertext"></div>
-</jsuites-modal>
+	<jsuites-modal id="serverMessage" title="Message" 
+		closed="true" width="600" height="400">
+		<div id="serverText"></div>
+	</jsuites-modal>
+	<jsuites-modal id="saronInfoMessage" title="Saron Information " 
+		closed="true" width="320" height="300">
+		<div id="link-table">
+			SARON rate sources<br />
+			<a href="https://www.six-group.com/exchanges/downloads/indexdata/hsrron.csv"
+			>SARON rates 1999 - present (SIX)</a>
+			<br /><br />
+			More information<br />
+			<a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/compound_rates_en.html"
+				target="_blank"
+			>SARON Compound Rates</a><br />
+			<a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/reference_rates_en.html"
+				target="_blank"
+			>Swiss Refernce Rates</a>
+		</div>
+	</jsuites-modal>
 
-<script src="js/AppWeb.mjs" type="module"></script>
+	<script src="js/AppWeb.mjs" type="module"></script>
 
 </body>
 </html>

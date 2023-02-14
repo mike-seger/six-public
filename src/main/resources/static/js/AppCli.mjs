@@ -2,7 +2,7 @@ import fs from 'fs'
 import os from 'os'
 
 import { compundRateSeries } from './SaronCompoundCalculator.mjs'
-import { loadRates, fillRates } from './SaronRatesLoader.mjs'
+import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { download } from './FileDownloader.mjs'
 
 if (process.argv.length < 4) {

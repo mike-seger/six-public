@@ -1,34 +1,44 @@
-import { loadRates, fillRates } from './SaronRatesLoader.mjs'
+import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { getPrevPeriod, plusDays } from './DateUtils.mjs'
 import { Spinner } from './Spinner.mjs'
 
 let saronCalculator = null
 
-const serverMessage = document.querySelector('jsuites-modal')
-const serverText = document.getElementById('servertext')
+//const serverMessage = document.querySelector('jsuites-modal')
+const serverMessage = document.getElementById('serverMessage')
+const serverText = document.getElementById('serverText')
+const saronInfoMessage = document.getElementById('saronInfoMessage')
+const saronInfo = document.getElementById('saronInfo')
 const startDate = document.getElementById('startdate')
 const endDate = document.getElementById('enddate')
 const allStartDates = document.getElementById('allStartDates')
 const offline = document.getElementById('offline')
 const offlineParameter = document.getElementById('offline-parameter')
-const upload = document.getElementById('upload')
-const download = document.getElementById('download')
+const importButton = document.getElementById('import')
+const exportButton = document.getElementById('export')
 
-const downloadParameters = document.getElementById('download-parameters')
+const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
+
 let maxDate = new Date()
 let minDate = maxDate
-let chooserData = createChooserData()
+let chooserData = createExportChooserData()
+
+const importChooser = jSuites.dropdown(document.getElementById('import-chooser'), {
+	data: [
+		{ value: "SaronRatesUpload", text: "Saron Rates File" },
+		{ value: "Local saron-2021.tsv", text: "Saron Rates 2021" },
+	]
+})
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
-const downloadChooser = jSuites.dropdown(document.getElementById('download-chooser'), {
+const exportChooser = jSuites.dropdown(document.getElementById('export-chooser'), {
 	data: chooserData,
-	onchange: function(el,val) { downloadChooserChanged(val); },
-	autocomplete: true,
+	onchange: function(el,val) { exportChooserChanged(val); }
 })
 
-function createChooserData() {
+function createExportChooserData() {
 	let date = maxDate
 	const prevQuarter = getPrevPeriod(date, 3)
 	const prevSemester = getPrevPeriod(date, 6)
@@ -51,13 +61,14 @@ function createChooserData() {
 }
 
 function initParameters() {
-	downloadChooser.setValue(chooserData[0].value)
+	importChooser.setValue("SaronRatesUpload")
+	exportChooser.setValue(chooserData[0].value)
 	offline.checked = true
 	allStartDates.checked = true
 	if(window.location.host.indexOf("mike-seger.github.io")>=0) {
 		offlineParameter.style.display = "none"
 	}
-	downloadParameters.style.display = "none"
+	exportParameters.style.display = "none"
 }
 
 function ratesChanged(instance) {
@@ -71,13 +82,13 @@ function ratesChanged(instance) {
 		dates.sort()
 		minDate = dates[0].substring(0,10)
 		maxDate = plusDays(new Date(dates[dates.length-1].substring(0,10)), 1)
-		chooserData = createChooserData()
-		downloadChooser.setData(chooserData)
-		downloadChooserChanged(downloadChooser)
-		downloadChooser.setValue(chooserData[0].value)
-		downloadParameters.style.display = "block"
+		chooserData = createExportChooserData()
+		exportChooser.setData(chooserData)
+		exportChooserChanged(exportChooser)
+		exportChooser.setValue(chooserData[0].value)
+		exportParameters.style.display = "block"
 	} else {
-		downloadParameters.style.display = "none"
+		exportParameters.style.display = "none"
 	}
 	//console.log("Data: "+validData)
 }
@@ -146,7 +157,7 @@ async function postJson(url, requestData) {
 	}
 }
 
-function downloadChooserChanged(val) {
+function exportChooserChanged(val) {
 	const value = val.getValue()
 	console.log(value)
 	if(value === 'custom') {
@@ -157,21 +168,6 @@ function downloadChooserChanged(val) {
 		startDate.value = isoDates[0]
 		endDate.value = isoDates[1]
 	}
-}
-
-function uploadFile(file) {
-	if( !(
-			file.type === "text/tab-separated-values"
-			|| file.type === "text/csv"
-			|| file.type === "text/plain"
-		)) {
-		messageDialog("Unsupported file type: "+file.type)
-		return
-	}
-
-	const reader = new FileReader();
-	reader.readAsText(file);
-	reader.onload = () => storeResults(reader.result);
 }
 
 function messageDialog(content) {
@@ -200,7 +196,7 @@ function storeResults(data) {
 		Spinner.close()
 	} catch(err) {
 		Spinner.close()
-		messageDialog("Error occurred processing the uploaded rates file:\n"+err)        
+		messageDialog("Error occurred processing the imported rates file:\n"+err)        
 	}
 }
 
@@ -216,7 +212,7 @@ async function exportFile0() {
 	function handleError(err) {
 		console.trace(err)
 		Spinner.close()
-		messageDialog("Error occurred creating the file to download:\n"+err)
+		messageDialog("Error occurred creating the file to export:\n"+err)
 	}
 
 	try {
@@ -292,15 +288,54 @@ async function exportFile0() {
 	} catch(err) { handleError(err) }
 }
 
-function importFile() {
+function importFile0(file) {
+	if( !(
+			file.type === "text/tab-separated-values"
+			|| file.type === "text/csv"
+			|| file.type === "text/plain"
+		)) {
+		messageDialog("Unsupported file type: "+file.type)
+		return
+	}
+
+	const reader = new FileReader();
+	reader.readAsText(file);
+	reader.onload = () => storeResults(reader.result)
+}
+
+async function importFile() {
+	Spinner.open()
+	const mode = importChooser.getValue()
+	if(mode === "SaronRatesUpload") {
+		importFileDialog()
+	} else if(mode.startsWith("Local ")) {
+		const file = mode.substring("Local ".length)
+		const data = await importResource("../data/"+file)
+		storeResults(data)
+	}
+}
+
+async function importResource(location) {
+	try {
+		const response = await fetch(location)
+		if(response.status != 200) throw (data)
+		const data = await response.text()
+		return data
+	} catch (e) {
+		console.log('error', e)
+		throw("Error sending request: "+e.message)
+	}
+}
+
+function importFileDialog() {
 	Spinner.open()
 	let input = document.createElement('input')
-	let uploading = false
+	let exporting = false
 	input.type = 'file'
 	input.accept = ".csv, .tsv, .txt"
 	input.onchange = function(event) {
-		uploading = true
-		uploadFile(input.files[0])
+		exporting = true
+		importFile0(input.files[0])
 	}
 
 	function addDialogClosedListener(input, callback) {
@@ -326,14 +361,15 @@ function importFile() {
 	}
 
 	addDialogClosedListener(input, function() {
-		if(!uploading) Spinner.close()
+		if(!exporting) Spinner.close()
 		console.log('File dialog closed!')
 	})
 
 	input.click()
 }
 
-upload.addEventListener('click', importFile)
-download.addEventListener('click', exportFile)
+importButton.addEventListener('click', importFile)
+exportButton.addEventListener('click', exportFile)
+saronInfo.addEventListener('click', function () {saronInfoMessage.modal.open()})
 
 initParameters()
