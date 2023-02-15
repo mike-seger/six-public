@@ -134,9 +134,8 @@ a:active {
 
 #rate-display {
 	background-color: white;
-	width: calc(100% - 25px);
-	height: 299px !important;
-	max-height: 299px !important;
+	width: calc(100% - 60px) !important;
+	height: 250px;
 	min-height: 299px !important;
 	margin: 0 auto;
 	box-shadow: 0 22px 35px -16px rgba(0,0,0, 0.1);
@@ -156,7 +155,6 @@ a:active {
 #saronInfoMessage .jmodal_content{
 	padding-top: 5px;
 }
-
 
 #saronInfoMessage div.jmodal:after {
 	display:none;
