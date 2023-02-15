@@ -26,9 +26,14 @@ let chooserData = createExportChooserData()
 
 const importChooser = jSuites.dropdown(document.getElementById('import-chooser'), {
 	data: [
-		{ value: "SaronRatesUpload", text: "Saron Rates File" },
-		{ value: "Local saron-2021.tsv", text: "Saron Rates 2021" },
-	]
+		{ value: "SaronRatesUpload", text: "File..." },
+		{ value: "Local saron-2022.tsv", text: "2022" },
+		{ value: "Local saron-2021.tsv", text: "2021" },
+		{ value: "Local saron-2020.tsv", text: "2020" },
+		{ value: "Local saron-2019.tsv", text: "2019" },
+	],
+	onchange: importFile,
+	width: '100px'
 })
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
@@ -61,7 +66,7 @@ function createExportChooserData() {
 }
 
 function initParameters() {
-	importChooser.setValue("SaronRatesUpload")
+	importChooser.setValue("")
 	exportChooser.setValue(chooserData[0].value)
 	offline.checked = true
 	allStartDates.checked = true
@@ -309,8 +314,10 @@ function importFile0(file) {
 }
 
 async function importFile() {
-	Spinner.open()
 	const mode = importChooser.getValue()
+	if(mode.trim() === "") return
+	Spinner.open()
+	importChooser.setValue("")
 	if(mode === "SaronRatesUpload") {
 		importFileDialog()
 	} else if(mode.startsWith("Local ")) {
@@ -378,7 +385,7 @@ function importFileDialog() {
 	input.click()
 }
 
-importButton.addEventListener('click', importFile)
+//importButton.addEventListener('click', importFile)
 exportButton.addEventListener('click', exportFile)
 saronInfo.addEventListener('click', function (e) {
 	saronInfoMessage.modal.open()

@@ -1,9 +1,6 @@
-let chart = createChart() 
+import { formattedRound } from './NumberUtils.mjs'
 
-function round(n, decimals) {
-	if (n < 0) return -round(-n, decimals)
-	return +(Math.round(n + "e+" + decimals)  + "e-" + decimals)	
-}
+let chart = createChart() 
 
 function createChart() {
 	var options = {
@@ -36,7 +33,7 @@ function createChart() {
 			gradient: {
 				shadeIntensity: 1,
 				inverseColors: false,
-				opacityFrom: 5.5,
+				opacityFrom: 0.5,
 				opacityTo: 0,
 				stops: [0, 90, 100]
 			},
@@ -44,7 +41,7 @@ function createChart() {
 		yaxis: {
 			labels: {
 				formatter: function(val) {
-					return val===undefined?'':round(Number(val), 6)
+					return formattedRound(Number(val), 3)
 				},
 			},
 			title: {
@@ -58,7 +55,7 @@ function createChart() {
 			shared: false,
 			y: {
 				formatter: function(val) {
-					return val===undefined?'':round(Number(val), 6)
+					return formattedRound(Number(val), 3)
 				}
 			}
 		},

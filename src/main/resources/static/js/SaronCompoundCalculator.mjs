@@ -1,25 +1,5 @@
 import { plusDays, diffDays } from './DateUtils.mjs'
-
-function range(start, end) {
-	const sign = start > end ? -1 : 1;
-	return Array.from(
-		{ length: Math.abs(end - start) },
-		(_, i) => start + i * sign
-	)
-}
-
-Number.prototype.round = function(decimals) {
-	if (this < 0) return -(-this).round(decimals)
-	return +(Math.round(this + "e+" + decimals)  + "e-" + decimals)
-}
-
-function formattedRound(num, decimals) {
-	let s = (num.round(decimals+5).round(decimals)+"")
-	if(s.indexOf(".")<0) s+=".0"
-	if(decimals<=0) return s.substring(0,s.indexOf("."))
-	const length = s.indexOf('.')+1+decimals
-	return s.padEnd(length, '0')
-}
+import { range, formattedRound } from './NumberUtils.mjs'
 
 function doValidateRateMap(rateMap, startDate, endDate) {
 	let date = startDate
