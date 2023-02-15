@@ -183,6 +183,7 @@
 
 .jexcel_content {
 	width: 305px;
+	height: 320px !important;
 }
 
 .jexcel_content_with_search_filter {

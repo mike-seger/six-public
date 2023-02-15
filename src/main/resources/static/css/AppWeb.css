@@ -1,3 +1,8 @@
+:root {
+    --button-color: rgb(41, 139, 168);
+    --active-color: #4974c5;
+}
+
 body, html {
 	overflow: hidden;
 	padding: 0;
@@ -30,15 +35,13 @@ body::-webkit-scrollbar-thumb {
 body::-webkit-scrollbar-button { width: 0; }
 body::-webkit-scrollbar-corner { width: 0; }
 
-.container {
-	height: calc(100vh - 30px);
-	flex-direction: column;
-	padding: 9px;
-}
-
-.content {
-	flex: 1;
-	box-sizing: border-box;
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
+	text-decoration: none;
+	color: var(--active-color);
 }
 
 #toolbar {
@@ -47,6 +50,8 @@ body::-webkit-scrollbar-corner { width: 0; }
 
 #saron-table {
 	width: 280px;
+	max-height: 340px !important;
+	min-height: 340px !important;
 }
 
 #saron-table tr:nth-child(even) {
@@ -64,7 +69,10 @@ body::-webkit-scrollbar-corner { width: 0; }
 .grid-container {
 	display: grid;
 	grid-template-columns: 0.5fr 2.8fr;
-	grid-gap: 50px;
+	grid-gap: 40px;
+	height: 300px !important;
+	max-height: 300px !important;
+	min-height: 300px !important;
 }
 
 .input {
@@ -90,7 +98,7 @@ body::-webkit-scrollbar-corner { width: 0; }
 }
 
 .btn:hover, .btn:focus {
-  background-color: #4585d3;
+  background-color: var(--active-color);
 }
 
 #custom-parameters {
@@ -126,14 +134,30 @@ body::-webkit-scrollbar-corner { width: 0; }
 
 #rate-display {
 	background-color: white;
-	width: calc(100% - 20px);
-	height: 300px;;
+	width: calc(100% - 25px);
+	height: 299px !important;
+	max-height: 299px !important;
+	min-height: 299px !important;
 	margin: 0 auto;
 	box-shadow: 0 22px 35px -16px rgba(0,0,0, 0.1);
 }
+/* 
+#saronInfoMessage * {
+	font-family: Verdana, Geneva, Tahoma, sans-serif !important;
+	font-size: 16px;
+} */
 
-#container {
-	background-color: red;
-	width: calc(100% - 20px);
-	height: 300px;;
+#saronInfoMessage .jmodal_title {
+	height: 40px !important;
+	font-size: 18px !important;
+	font-family: sans-serif !important;
+}
+
+#saronInfoMessage .jmodal_content{
+	padding-top: 5px;
+}
+
+
+#saronInfoMessage div.jmodal:after {
+	display:none;
 }

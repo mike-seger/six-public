@@ -1,8 +1,8 @@
 let chart = createChart() 
 
-Number.prototype.round = function(decimals) {
-	if (this < 0) return -(-this).round(decimals)
-	return +(Math.round(this + "e+" + decimals)  + "e-" + decimals)
+function round(n, decimals) {
+	if (n < 0) return -round(-n, decimals)
+	return +(Math.round(n + "e+" + decimals)  + "e-" + decimals)	
 }
 
 function createChart() {
@@ -36,7 +36,7 @@ function createChart() {
 			gradient: {
 				shadeIntensity: 1,
 				inverseColors: false,
-				opacityFrom: 0.5,
+				opacityFrom: 5.5,
 				opacityTo: 0,
 				stops: [0, 90, 100]
 			},
@@ -44,7 +44,7 @@ function createChart() {
 		yaxis: {
 			labels: {
 				formatter: function(val) {
-					return Number(val).round(6); //(val / 1000000).toFixed(0);
+					return val===undefined?'':round(Number(val), 6)
 				},
 			},
 			title: {
@@ -58,9 +58,12 @@ function createChart() {
 			shared: false,
 			y: {
 				formatter: function(val) {
-					return (val / 1000000).toFixed(0)
+					return val===undefined?'':round(Number(val), 6)
 				}
 			}
+		},
+		theme: {
+			palette: 'palette3'
 		}
 	}
 

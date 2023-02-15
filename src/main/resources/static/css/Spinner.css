@@ -60,7 +60,7 @@ body.spinner .spinner_website span {
 }
 .spinner_website > span > svg {
 	fill: transparent;
-	stroke: #1a73e8;
+	stroke: var(--active-color);
 	stroke-width: 5;
 	animation: spinner_dash 2s ease infinite, spinner_rotate 2s linear infinite;
 }
