@@ -128,13 +128,40 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 			decimal:'.'
 		},
 	],
-	onchange: cellChanged,   
+	onchange: cellChanged,
+	oninsertrow: rowInserted,   
 	onload: ratesChanged,
 	onpaste: ratesChanged,
 	width: '300px',
 	rowResize: false,
 	columnDrag: false,
 })
+
+function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
+	console.log(instance, jexcel.current.options.data.length, rowNumber, numOfRows, insertBefore)
+	let lastRow = jexcel.current.options.data.length-1
+	let delta = 1
+	let i = Math.min(lastRow, rowNumber+numOfRows)
+	if(i >= lastRow) { delta = -1; lastRow=0; i=Math.max(rowNumber-1,0) }
+	while(i != lastRow) {
+		let srcData = jexcel.current.getRowData(i)
+		if(!srcData || !srcData[0].match(/^[12]...-..-...*/)) {
+			if(rowNumber-numOfRows>=0)
+				srcData = jexcel.current.getRowData(rowNumber+numOfRows)
+		} else {
+			console.log(srcData)
+			srcData[1] = ""
+			let newDate = srcData[0]
+			for(let j=numOfRows-1;j>=0;j--) {
+				newDate = plusDays(newDate, 1, true)
+				srcData[0] = newDate
+				jexcel.current.setRowData(rowNumber+j, srcData)
+			}
+			break
+		}
+		i+=delta
+	}
+}
 
 function cellChanged(instance, cell, x, y, value) {
 	if(value) {

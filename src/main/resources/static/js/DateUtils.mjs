@@ -15,12 +15,17 @@ function isoDate(date) {
 		+("0" + date.getDate()).slice(-2)
 }
 
-function plusDays(isoDateStr, days) {
+function plusDays(isoDateStr, days, onlyWeekdays) {
 	if(typeof isoDateStr.getMonth === 'function')
 		isoDateStr = isoDate(isoDateStr)
 	const date = localDate(isoDateStr)
-	date.setDate(date.getDate() + days)
-	return isoDate(date)
+	let resDate = date
+	const delta = days>=0? 1 : -1
+	do {
+		resDate.setDate(date.getDate() + days)
+		days += delta
+	} while(onlyWeekdays && (resDate.getDay() === 6) || (resDate.getDay()  === 0))
+	return isoDate(resDate)
 }
 
 function getPrevPeriod(date, period) {
