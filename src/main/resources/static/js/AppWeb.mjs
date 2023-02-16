@@ -100,7 +100,6 @@ function ratesChanged(instance) {
 	} else {
 		exportParameters.style.display = "none"
 	}
-	//console.log("Data: "+validData)
 }
 
 const saronTable = jspreadsheet(document.getElementById('saron-table'), {
@@ -125,8 +124,6 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 			title: 'SARON Rate',
 			name: 'SaronRate',
 			type: 'numeric',
-			//options: { format:'0.000000' },
-			//mask:'0.000000',
 			width:'120px',
 			decimal:'.'
 		},
@@ -140,20 +137,18 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 })
 
 function cellChanged(instance, cell, x, y, value) {
-	jexcel.current.ignoreEvents = true
 	if(value) {
-		//x = Number(x)
-		//const name = String.fromCharCode(x + 65)+y
+		jexcel.current.ignoreEvents = true
 		const name = jexcel.getColumnNameFromId([x,y])
 		value = (value+"").replace(/[^\d.-]/gm, "")
-		if (x == 0 && value.match(/^[12]...-..-...*/))
+		if (x==0 && value.match(/^[12]...-..-...*/))
 			jexcel.current.setValue(name, value.substring(0,10))
-		else if(x==1 && value.match(/^(\d+)(,\d{1,2}|\.\d{1,})?$/)) {
+		else if(x==1 && value.match(/^-*(\d+)(,\d{1,2}|\.\d{1,})?$/)) {
 			jexcel.current.setValue(name, formattedRound(Number(value), 6))
 		} else console.log(`Invalid value at (${x}/${y}) ${value}`)
+		ratesChanged(instance)
+		jexcel.current.ignoreEvents = false
 	}
-	jexcel.current.ignoreEvents = false
-	if(value) ratesChanged(instance)
 }
 
 async function postJson(url, requestData) {
