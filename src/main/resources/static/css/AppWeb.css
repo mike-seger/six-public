@@ -140,11 +140,6 @@ a:active {
 	margin: 0 auto;
 	box-shadow: 0 22px 35px -16px rgba(0,0,0, 0.1);
 }
-/* 
-#saronInfoMessage * {
-	font-family: Verdana, Geneva, Tahoma, sans-serif !important;
-	font-size: 16px;
-} */
 
 #saronInfoMessage .jmodal_title {
 	height: 40px !important;

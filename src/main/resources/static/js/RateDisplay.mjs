@@ -80,6 +80,7 @@ function updateRateDisplay(data0) {
 			Number(elem[1])
 		]
 	})
+	data.sort((a,b) => a[0] - b[0])
 
 	chart.updateSeries([{
 		name: 'SARON Rates',

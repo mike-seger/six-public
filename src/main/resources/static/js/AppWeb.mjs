@@ -1,6 +1,7 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { getPrevPeriod, plusDays } from './DateUtils.mjs'
 import { updateRateDisplay } from './RateDisplay.mjs'
+import { formattedRound } from './NumberUtils.mjs'
 import { Spinner } from './Spinner.mjs'
 
 let saronCalculator = null
@@ -14,7 +15,6 @@ const endDate = document.getElementById('enddate')
 const allStartDates = document.getElementById('allStartDates')
 const offline = document.getElementById('offline')
 const offlineParameter = document.getElementById('offline-parameter')
-const importButton = document.getElementById('import')
 const exportButton = document.getElementById('export')
 
 const exportParameters = document.getElementById('export-parameters')
@@ -140,14 +140,20 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 })
 
 function cellChanged(instance, cell, x, y, value) {
-	jexcel.current.ignoreEvents = true;
-	if (x == 0) {
-		const name = jexcel.getColumnNameFromId([y, x]);
-		const newValue = value.substring(0, Math.min(10, value.length))
-		jexcel.current.setValue(name, newValue)
+	jexcel.current.ignoreEvents = true
+	if(value) {
+		//x = Number(x)
+		//const name = String.fromCharCode(x + 65)+y
+		const name = jexcel.getColumnNameFromId([x,y])
+		value = (value+"").replace(/[^\d.-]/gm, "")
+		if (x == 0 && value.match(/^[12]...-..-...*/))
+			jexcel.current.setValue(name, value.substring(0,10))
+		else if(x==1 && value.match(/^(\d+)(,\d{1,2}|\.\d{1,})?$/)) {
+			jexcel.current.setValue(name, formattedRound(Number(value), 6))
+		} else console.log(`Invalid value at (${x}/${y}) ${value}`)
 	}
 	jexcel.current.ignoreEvents = false
-	ratesChanged(instance)
+	if(value) ratesChanged(instance)
 }
 
 async function postJson(url, requestData) {
