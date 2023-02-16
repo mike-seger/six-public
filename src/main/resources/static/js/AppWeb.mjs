@@ -143,9 +143,15 @@ function cellChanged(instance, cell, x, y, value) {
 		value = (value+"").replace(/[^\d.-]/gm, "")
 		if (x==0 && value.match(/^[12]...-..-...*/))
 			jexcel.current.setValue(name, value.substring(0,10))
-		else if(x==1 && value.match(/^-*(\d+)(,\d{1,2}|\.\d{1,})?$/)) {
-			jexcel.current.setValue(name, formattedRound(Number(value), 6))
-		} else console.log(`Invalid value at (${x}/${y}) ${value}`)
+		else if(x==1) {
+			if(value.startsWith(".") || value.startsWith("-."))
+				value = value.replace(".", "0.")
+			if(value.match(/^-*(\d+)(,\d{0,}|\.\d{1,})?$/))
+				jexcel.current.setValue(name, formattedRound(Number(value), 6))
+		} else {
+			console.log(`Invalid value at (${x}/${y}) ${value}`)
+			value = ""
+		}
 		ratesChanged(instance)
 		jexcel.current.ignoreEvents = false
 	}
