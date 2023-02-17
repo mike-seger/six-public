@@ -1,5 +1,5 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
-import { getPrevPeriod, plusDays } from './DateUtils.mjs'
+import { getPrevPeriod, plusDays, plusSwissWorkingDays } from './DateUtils.mjs'
 import { updateRateDisplay } from './RateDisplay.mjs'
 import { formattedRound } from './NumberUtils.mjs'
 import { Spinner } from './Spinner.mjs'
@@ -153,7 +153,7 @@ function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
 			srcData[1] = ""
 			let newDate = srcData[0]
 			for(let j=numOfRows-1;j>=0;j--) {
-				newDate = plusDays(newDate, 1, true)
+				newDate = plusSwissWorkingDays(newDate, 1, true)
 				srcData[0] = newDate
 				jexcel.current.setRowData(rowNumber+j, srcData)
 			}
