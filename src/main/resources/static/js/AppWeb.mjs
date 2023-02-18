@@ -1,8 +1,9 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
-import { getPrevPeriod, plusDays, plusSwissWorkingDays } from './DateUtils.mjs'
+import { getPrevPeriod, plusDays, plusSwissWorkingDays, isoDate } from './DateUtils.mjs'
 import { updateRateDisplay } from './RateDisplay.mjs'
 import { formattedRound } from './NumberUtils.mjs'
 import { Spinner } from './Spinner.mjs'
+import { addItemToHistory, getNewestItemData, getItemData, getItemInfo, removeItem, getHistoryMetaData } from './EditorHistory.mjs'
 
 let saronCalculator = null
 
@@ -15,6 +16,7 @@ const endDate = document.getElementById('enddate')
 const allStartDates = document.getElementById('allStartDates')
 const offline = document.getElementById('offline')
 const offlineParameter = document.getElementById('offline-parameter')
+const removeButton = document.getElementById('removeEntry')
 const exportButton = document.getElementById('export')
 
 const exportParameters = document.getElementById('export-parameters')
@@ -27,6 +29,7 @@ let chooserData = createExportChooserData()
 const importChooser = jSuites.dropdown(document.getElementById('import-chooser'), {
 	data: [
 		{ value: "SaronRatesUpload", text: "File..." },
+		{ value: "empty", text: "Empty" },
 		{ value: "Local saron-2022.tsv", text: "2022" },
 		{ value: "Local saron-2021.tsv", text: "2021" },
 		{ value: "Local saron-2020.tsv", text: "2020" },
@@ -35,6 +38,19 @@ const importChooser = jSuites.dropdown(document.getElementById('import-chooser')
 	onchange: importFile,
 	width: '100px'
 })
+
+const editorHistoryChooser = jSuites.dropdown(document.getElementById('editor-history-chooser'), {
+	data: [],
+	onchange: importDirect,
+	width: '250px'
+})
+
+function updateEditorHistoryChooserData() {
+	const data = new Array()
+	getHistoryMetaData().map(item =>
+		data.push({ group: item.title, value: item.metaKey, text: item.dateTime }))
+	editorHistoryChooser.setData(data)
+}
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
@@ -68,6 +84,7 @@ function createExportChooserData() {
 function initParameters() {
 	importChooser.setValue("")
 	exportChooser.setValue(chooserData[0].value)
+	updateEditorHistoryChooserData()
 	offline.checked = true
 	allStartDates.checked = true
 	if(window.location.host.indexOf("mike-seger.github.io")>=0) {
@@ -102,6 +119,7 @@ function ratesChanged(instance) {
 	}
 }
 
+let saronTableTitle = "custom"
 const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 	defaultColAlign: 'left',
 	minDimensions: [2, 26],
@@ -148,6 +166,7 @@ function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
 		if(!srcData || !srcData[0].match(/^[12]...-..-...*/)) {
 			if(rowNumber-numOfRows>=0)
 				srcData = jexcel.current.getRowData(rowNumber+numOfRows)
+			if(srcData[0] === "") srcData[0] = isoDate(new Date())
 		} else {
 			console.log(srcData)
 			srcData[1] = ""
@@ -168,19 +187,39 @@ function cellChanged(instance, cell, x, y, value) {
 		jexcel.current.ignoreEvents = true
 		const name = jexcel.getColumnNameFromId([x,y])
 		value = (value+"").replace(/[^\d.-]/gm, "")
-		if (x==0 && value.match(/^[12]...-..-...*/))
+		if (x==0 && value.match(/^[12]...-..-...*/)) {
 			jexcel.current.setValue(name, value.substring(0,10))
-		else if(x==1) {
+			rowChanged(jexcel.current.getRowData(y))
+		} else if(x==1) {
 			if(value.startsWith(".") || value.startsWith("-."))
 				value = value.replace(".", "0.")
-			if(value.match(/^-*(\d+)(,\d{0,}|\.\d{1,})?$/))
+			if(value.match(/^-*(\d+)(,\d{0,}|\.\d{1,})?$/)) {
 				jexcel.current.setValue(name, formattedRound(Number(value), 6))
+				rowChanged(jexcel.current.getRowData(y))
+			}
 		} else {
 			console.log(`Invalid value at (${x}/${y}) ${value}`)
 			value = ""
 		}
 		ratesChanged(instance)
 		jexcel.current.ignoreEvents = false
+	}
+}
+
+function getValidTableDataAsJson() {
+	const data = saronTable.getData().filter(e => 
+		e[0].match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
+		&& e[1].match(/^-*[0-9.]+$/)
+	)
+	return JSON.stringify(data)
+}
+
+function rowChanged(rowData) {
+	if(rowData.indexOf("")<0) {
+		addItemToHistory(saronTableTitle, getValidTableDataAsJson())
+		console.log(getHistoryMetaData())
+		console.log(getNewestItemData())
+		updateEditorHistoryChooserData()
 	}
 }
 
@@ -347,9 +386,31 @@ function importFile0(file) {
 	reader.onload = () => storeResults(reader.result)
 }
 
+function removeCurrentHistoryEntry() {
+	const metaKey = editorHistoryChooser.getValue()
+	if(metaKey && metaKey !== "") {
+		removeItem(metaKey)
+		updateEditorHistoryChooserData()
+	}
+}
+
+function importDirect(data) {
+	if(data.dropdown) {
+		const metaKey = editorHistoryChooser.getValue()
+		data = getItemData(metaKey)
+		saronTableTitle = getItemInfo(metaKey).title
+	} else saronTableTitle = "custom"
+	saronTable.setData(JSON.parse(data))
+}
+
 async function importFile() {
 	const mode = importChooser.getValue()
 	if(mode.trim() === "") return
+	if(mode === "empty") {
+		importDirect(JSON.stringify([]))
+		editorHistoryChooser.setValue("")
+		return
+	}
 	Spinner.open()
 	importChooser.setValue("")
 	if(mode === "SaronRatesUpload") {
@@ -357,6 +418,7 @@ async function importFile() {
 	} else if(mode.startsWith("Local ")) {
 		const file = mode.substring("Local ".length)
 		const data = await importResource("./data/"+file)
+		saronTableTitle = file
 		storeResults(data)
 	}
 }
@@ -419,6 +481,7 @@ function importFileDialog() {
 	input.click()
 }
 
+removeButton.addEventListener('click', removeCurrentHistoryEntry)
 //importButton.addEventListener('click', importFile)
 exportButton.addEventListener('click', exportFile)
 saronInfo.addEventListener('click', function (e) {
