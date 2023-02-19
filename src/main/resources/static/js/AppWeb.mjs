@@ -149,11 +149,15 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 			decimal:'.'
 		},
 	],
+	//onevent: tableEvent,
+	//onafterchanges: onAfterChanges,
 	onchange: cellChanged,
 	oninsertrow: rowInserted,
 	ondeleterow: deleteRows,
 	onload: ratesChanged,
 	onpaste: tableChanged,
+	onundo: tableChanged,
+	onredo: tableChanged,
 	onselection: cellsSelected,
 	contextMenu: function(obj, x, y, e, items, section) {
 		var items = []
@@ -189,6 +193,10 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 	rowResize: false,
 	columnDrag: false,
 })
+
+function tableEvent(a,b,c,d,e) {
+	console.log(a,b,c,d,e)
+}
 
 function deleteRows(a,b,c,d,e) {
 	tableChanged()
@@ -226,6 +234,11 @@ function cellsSelected(el, px, py, ux, uy, origin) {
 	}
 }
 
+function onAfterChanges(instance, cells) {
+	cells.map(cell => cellChanged(instance, cell, cell.x, cell.y, cell.newValue))
+	tableChanged()
+}
+
 function cellChanged(instance, cell, x, y, value) {
 	if(value) {
 		jexcel.current.ignoreEvents = true
@@ -245,7 +258,8 @@ function cellChanged(instance, cell, x, y, value) {
 			console.log(`Invalid value at (${x}/${y}) ${value}`)
 			value = ""
 		}
-		ratesChanged(instance)
+		tableChanged()
+		//ratesChanged(instance)
 		jexcel.current.ignoreEvents = false
 	}
 }
