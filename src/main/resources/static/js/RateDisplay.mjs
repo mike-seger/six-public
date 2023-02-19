@@ -30,6 +30,7 @@ function createChart() {
 		},
 		stroke: {
 			curve: 'stepline',
+			width: 2,
 		},
 		fill: {
 			type: 'gradient',
