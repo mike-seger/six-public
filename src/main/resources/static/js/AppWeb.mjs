@@ -148,15 +148,36 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 			decimal:'.'
 		},
 	],
-	text:{
-        insertANewRowBefore:'Insert new rows before',
-        insertANewRowAfter:'Insert new rows after',
-    },
 	onchange: cellChanged,
 	oninsertrow: rowInserted,
 	ondeleterow: deleteRows,
 	onload: ratesChanged,
 	onpaste: tableChanged,
+	contextMenu: function(obj, x, y, e, items, section) {
+		var items = [];
+		{
+			if (obj.options.allowInsertRow == true) {
+				let numOfRows = obj.getSelectedRows().length
+				if(!numOfRows || numOfRows<1) numOfRows=1
+				items.push({
+					title: T('Insert new rows'),
+					onclick: function() {
+						obj.insertRow(numOfRows, parseInt(y), 1)
+					}
+				})
+			}
+	 
+			if (obj.options.allowDeleteRow == true) {
+				items.push({
+					title: T('Delete selected rows'),
+					onclick: function() {
+						obj.deleteRow(obj.getSelectedRows().length ? undefined : parseInt(y))
+					}
+				})
+			}
+		}
+		return items;
+	},
 	width: '300px',
 	rowResize: false,
 	columnDrag: false,
@@ -174,11 +195,8 @@ function tableChanged() {
 
 function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
 	jexcel.current.ignoreEvents = true
-	
+
 	console.log(instance, jexcel.current.options.data.length, rowNumber, numOfRows, insertBefore)
-	if(numOfRows === 1)
-		numOfRows = jexcel.current.getSelectedRows().length
-	if(numOfRows>1) jexcel.current.insertRow(numOfRows-1, rowNumber, insertBefore)
 	let lastRow = jexcel.current.options.data.length-1
 	let srcRow = rowNumber+numOfRows
 	const prevWorkingDate = plusSwissWorkingDays(isoDate(new Date()), -1)
@@ -390,7 +408,12 @@ function importFile0(file) {
 
 	const reader = new FileReader();
 	reader.readAsText(file)
-	reader.onload = () => storeResults(reader.result)
+	reader.onload = () => {
+		editorHistoryChooser.setValue("")
+		storeResults(reader.result)
+		saronTableTitle = file.name
+		tableChanged()
+	}
 }
 
 function removeCurrentHistoryEntry() {
@@ -426,9 +449,10 @@ async function importFile() {
 	} else if(mode.startsWith("Local ")) {
 		const file = mode.substring("Local ".length)
 		const data = await importResource("./data/"+file)
-		saronTableTitle = file
 		editorHistoryChooser.setValue("")
 		storeResults(data)
+		saronTableTitle = file
+		tableChanged()
 	}
 }
 
@@ -491,7 +515,6 @@ function importFileDialog() {
 }
 
 removeButton.addEventListener('click', removeCurrentHistoryEntry)
-//importButton.addEventListener('click', importFile)
 exportButton.addEventListener('click', exportFile)
 saronInfo.addEventListener('click', function (e) {
 	saronInfoMessage.modal.open()
