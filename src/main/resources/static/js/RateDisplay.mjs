@@ -28,6 +28,9 @@ function createChart() {
 			text: 'SARON Rates',
 			align: 'left'
 		},
+		stroke: {
+			curve: 'stepline',
+		},
 		fill: {
 			type: 'gradient',
 			gradient: {

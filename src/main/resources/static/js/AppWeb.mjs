@@ -157,18 +157,16 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 		var items = []
 
 		if (obj.options.allowInsertRow == true) {
-			let numOfRows=1
-			let rowNum = parseInt(y)
-			let selectedRows = obj.getSelectedRows(true)
-			if(selectedRows) {
-				numOfRows = selectedRows.length
-				rowNum = Math.min.apply(Math, selectedRows)
-			}
-			if(!numOfRows || numOfRows<1) numOfRows = 1
-			if(!rowNum || rowNum<1) rowNum = parseInt(y)
 			items.push({
 				title: T('Insert new rows'),
 				onclick: function() {
+					let numOfRows = 1
+					let rowNum = parseInt(y)
+					let selectedRows = obj.getSelectedRows(true)
+					if(selectedRows) {
+						numOfRows = selectedRows.length
+						rowNum = Math.min.apply(Math, selectedRows)
+					}
 					obj.insertRow(numOfRows, rowNum, 1)
 				}
 			})
