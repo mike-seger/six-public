@@ -1,4 +1,4 @@
-import { formattedRound } from './NumberUtils.mjs'
+import { NumberUtils } from './NumberUtils.mjs'
 
 let chart = createChart() 
 
@@ -45,7 +45,7 @@ function createChart() {
 		yaxis: {
 			labels: {
 				formatter: function(val) {
-					return formattedRound(Number(val), 3)
+					return NumberUtils.formattedRound(Number(val), 3)
 				},
 			},
 			title: {
@@ -59,7 +59,7 @@ function createChart() {
 			shared: false,
 			y: {
 				formatter: function(val) {
-					return formattedRound(Number(val), 3)
+					return NumberUtils.formattedRound(Number(val), 3)
 				}
 			}
 		},
@@ -73,7 +73,10 @@ function createChart() {
 	return chart
 }
 
-function updateRateDisplay(data0) {
+let currentData = undefined
+let currentTimeoutId = undefined
+
+function update(data0) {
 	const data = data0.filter(elem => 
 		elem.length==2
 		&& elem[0].match(/^[12][0-9]{3}-[0-9]{2}-[0-9]{2}.*/)
@@ -85,6 +88,7 @@ function updateRateDisplay(data0) {
 		]
 	})
 	data.sort((a,b) => a[0] - b[0])
+	currentData = data
 
 	chart.updateSeries([{
 		name: 'SARON Rates',
@@ -92,4 +96,40 @@ function updateRateDisplay(data0) {
 	}])
 }
 
-export { updateRateDisplay }
+function annotatePoint(isoDate, timeoutMs = 3500) {
+	if(currentData) {
+		if(currentTimeoutId) clearTimeout(currentTimeoutId)
+		chart.clearAnnotations()
+		const x = new Date(isoDate).getTime()
+		const index = currentData.findIndex(dp => dp[0] == x)
+		if(index>=0) {
+			const y = currentData[index][1]
+			const low = index > currentData.length/2
+			const position = low?'left':'right'
+			const textAnchor = low?'end':'start'
+			chart.addPointAnnotation({ x: x, y: y, 
+				marker: {
+					size: 4,
+					fillColor: "rgb(230, 77, 192)",
+					strokeWidth: 0,
+					shape: "circle",
+					radius: 1,
+				},
+				label: { 
+					borderColor: "#00E396",
+					style: { cssClass: 'point-annotation' },
+					position: position,
+					textAnchor: textAnchor,
+					text: isoDate + ": " + NumberUtils.formattedRound(y, 6)
+				}})
+		}
+		currentTimeoutId = setTimeout(() => chart.clearAnnotations(), String(timeoutMs))
+	}
+}
+
+var RateDisplay = {
+	update, 
+	annotatePoint
+}
+
+export { RateDisplay }

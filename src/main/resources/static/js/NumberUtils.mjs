@@ -25,4 +25,8 @@ function formattedRound(n, decimals) {
 	return s.padEnd(length, '0')
 }
 
-export { range, round, formattedRound }
+var NumberUtils = {
+	range, round, formattedRound
+}
+
+export { NumberUtils, range, round, formattedRound }

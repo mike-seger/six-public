@@ -197,7 +197,7 @@ function isSwissBankHoliDay(isoDate) {
 }
 
 function test() {
-	console.log(swissBankHolidayCache)
+	//console.log(swissBankHolidayCache)
 	isSwissBankHoliDay("2023-04-07")
 	isSwissBankHoliDay("2023-04-10")
 	isSwissBankHoliDay("2023-05-18")

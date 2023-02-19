@@ -1,9 +1,10 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { DateUtils as DU } from './DateUtils.mjs'
-import { updateRateDisplay } from './RateDisplay.mjs'
+import { RateDisplay } from './RateDisplay.mjs'
 import { formattedRound } from './NumberUtils.mjs'
 import { Spinner } from './Spinner.mjs'
 import { EditorHistory as EH } from './EditorHistory.mjs'
+import { JSpreadSheetUtils } from './JSpreadSheetUtils.mjs'
 
 let saronCalculator = null
 
@@ -58,7 +59,7 @@ jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
 const exportChooser = jSuites.dropdown(document.getElementById('export-chooser'), {
 	data: chooserData,
-	onchange: function(el,val) { exportChooserChanged(val); }
+	onchange: function(el,val) { exportChooserChanged(val) }
 })
 
 function createExportChooserData() {
@@ -96,12 +97,12 @@ function initParameters() {
 }
 
 function ratesChanged(instance) {
-	console.log("Rates changed")
+	//console.log("Rates changed")
 	const jexcel = instance.jexcel?instance.jexcel:instance
 	const data = jexcel.getData()
 
 	setTimeout(function() {
-		updateRateDisplay(data)
+		RateDisplay.update(data)
 	}, 100)
 
 	const validData = data
@@ -153,6 +154,7 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 	ondeleterow: deleteRows,
 	onload: ratesChanged,
 	onpaste: tableChanged,
+	onselection: cellsSelected,
 	contextMenu: function(obj, x, y, e, items, section) {
 		var items = []
 
@@ -181,7 +183,7 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 			})
 		}
 		
-		return items;
+		return items
 	},
 	width: '300px',
 	rowResize: false,
@@ -215,6 +217,13 @@ function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
 	}
 
 	jexcel.current.ignoreEvents = false
+}
+
+function cellsSelected(el, px, py, ux, uy, origin) {
+	if(py === uy) {
+		const isoDate = jexcel.current.getValueFromCoords(0, py)
+		RateDisplay.annotatePoint(isoDate)
+	}
 }
 
 function cellChanged(instance, cell, x, y, value) {
@@ -261,7 +270,7 @@ async function postJson(url, requestData) {
 			headers: { 'Content-Type': 'application/json' }
 		})
 		const data = await response.text()
-		if(response.status != 200) throw data;
+		if(response.status != 200) throw data
 		return data
 	} catch (e) {
 		console.log('error', e)
@@ -272,7 +281,7 @@ async function postJson(url, requestData) {
 
 function exportChooserChanged(val) {
 	const value = val.getValue()
-	console.log(value)
+	//console.log(value)
 	if(value === 'custom') {
 		customParameters.style.display = "inline-block"
 	} else {
@@ -289,12 +298,12 @@ function messageDialog(content) {
 		content = content.replace(/<[^>]+>/g, '')
 			.replace(/^\s*$(?:\r\n?|\n)/gm,'')
 
-		const newLineExpression = /\r\n|\n\r|\n|\r/g;
+		const newLineExpression = /\r\n|\n\r|\n|\r/g
 		const removeDuplicatedLines = (text) => {
 			return text.split(newLineExpression)
 				.filter((item, index, array) => array.indexOf(item) === index)
 				.join('\n')
-		};
+		}
 		content = removeDuplicatedLines(content)
 	}
 	serverText.innerText = content
@@ -351,7 +360,7 @@ async function exportFile0() {
 			if(procData != null) {
 				const result = d3.csvFormat(procData)
 				let mimetype = "text/csv"
-				const timeStamp = new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-');
+				const timeStamp = new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-')
 				const dlLink = document.createElement('a')
 				dlLink.href = 'data:'+mimetype+';charset=utf-8,' + encodeURI(result)
 				dlLink.target = '_blank'
@@ -366,7 +375,7 @@ async function exportFile0() {
 
 		if(window.location.host.indexOf("mike-seger.github.io")>=0 || offline.checked) {
 			const data = saronTable.getData()
-			data.splice(0, 0, ["Date", "SaronRate"]);
+			data.splice(0, 0, ["Date", "SaronRate"])
 			const csv = loadRates(d3.csvFormatBody(data))
 			const rateMap = fillRates(csv)
 
@@ -411,7 +420,7 @@ function importFile0(file) {
 		return
 	}
 
-	const reader = new FileReader();
+	const reader = new FileReader()
 	reader.readAsText(file)
 	reader.onload = () => {
 		editorHistoryChooser.setValue("")
@@ -524,11 +533,18 @@ exportButton.addEventListener('click', exportFile)
 saronInfo.addEventListener('click', function (e) {
 	saronInfoMessage.modal.open()
 	const box = saronInfoMessage.querySelector("div")
-	box.style.position = "absolute";
-	const x = e.clientX + 15 + box.clientWidth/2;
-	const y = e.clientY + 15 + box.clientHeight/2;
-	box.style.left = `${x}px`;
-	box.style.top = `${y}px`;
+	box.style.position = "absolute"
+	const x = e.clientX + 15 + box.clientWidth/2
+	const y = e.clientY + 15 + box.clientHeight/2
+	box.style.left = `${x}px`
+	box.style.top = `${y}px`
 })
 
+function keyListener(e) {
+	if(e.key == 'PageDown' || e.key == 'PageUp') {
+		JSpreadSheetUtils.pageUpDown(jexcel.current, e.key == 'PageUp')
+	}
+}
+
 initParameters()
+document.addEventListener("keydown", keyListener)
