@@ -154,28 +154,35 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 	onload: ratesChanged,
 	onpaste: tableChanged,
 	contextMenu: function(obj, x, y, e, items, section) {
-		var items = [];
-		{
-			if (obj.options.allowInsertRow == true) {
-				let numOfRows = obj.getSelectedRows().length
-				if(!numOfRows || numOfRows<1) numOfRows=1
-				items.push({
-					title: T('Insert new rows'),
-					onclick: function() {
-						obj.insertRow(numOfRows, parseInt(y), 1)
-					}
-				})
+		var items = []
+
+		if (obj.options.allowInsertRow == true) {
+			let numOfRows=1
+			let rowNum = parseInt(y)
+			let selectedRows = obj.getSelectedRows(true)
+			if(selectedRows) {
+				numOfRows = selectedRows.length
+				rowNum = Math.min.apply(Math, selectedRows)
 			}
-	 
-			if (obj.options.allowDeleteRow == true) {
-				items.push({
-					title: T('Delete selected rows'),
-					onclick: function() {
-						obj.deleteRow(obj.getSelectedRows().length ? undefined : parseInt(y))
-					}
-				})
-			}
+			if(!numOfRows || numOfRows<1) numOfRows = 1
+			if(!rowNum || rowNum<1) rowNum = parseInt(y)
+			items.push({
+				title: T('Insert new rows'),
+				onclick: function() {
+					obj.insertRow(numOfRows, rowNum, 1)
+				}
+			})
 		}
+	
+		if (obj.options.allowDeleteRow == true) {
+			items.push({
+				title: T('Delete selected rows'),
+				onclick: function() {
+					obj.deleteRow(obj.getSelectedRows().length ? undefined : parseInt(y))
+				}
+			})
+		}
+		
 		return items;
 	},
 	width: '300px',
