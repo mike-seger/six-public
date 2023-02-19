@@ -3,7 +3,7 @@ import { getPrevPeriod, plusDays, plusSwissWorkingDays, isoDate } from './DateUt
 import { updateRateDisplay } from './RateDisplay.mjs'
 import { formattedRound } from './NumberUtils.mjs'
 import { Spinner } from './Spinner.mjs'
-import { addItemToHistory, getNewestItemData, getItemData, getItemInfo, removeItem, getHistoryMetaData } from './EditorHistory.mjs'
+import { EditorHistory as EH } from './EditorHistory.mjs'
 
 let saronCalculator = null
 
@@ -25,6 +25,7 @@ const customParameters = document.getElementById('custom-parameters')
 let maxDate = new Date()
 let minDate = maxDate
 let chooserData = createExportChooserData()
+let saronTableTitle = "custom"
 
 const importChooser = jSuites.dropdown(document.getElementById('import-chooser'), {
 	data: [
@@ -45,11 +46,12 @@ const editorHistoryChooser = jSuites.dropdown(document.getElementById('editor-hi
 	width: '250px'
 })
 
-function updateEditorHistoryChooserData() {
+function updateEditorHistoryChooserData(metaKey) {
 	const data = new Array()
-	getHistoryMetaData().map(item =>
+	EH.getHistoryMetaData().map(item =>
 		data.push({ group: item.title, value: item.metaKey, text: item.dateTime }))
 	editorHistoryChooser.setData(data)
+	if(metaKey) editorHistoryChooser.setValue(metaKey)
 }
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
@@ -95,7 +97,8 @@ function initParameters() {
 
 function ratesChanged(instance) {
 	console.log("Rates changed")
-	const data = instance.jexcel.getData()
+	const jexcel = instance.jexcel?instance.jexcel:instance
+	const data = jexcel.getData()
 
 	setTimeout(function() {
 		updateRateDisplay(data)
@@ -119,7 +122,6 @@ function ratesChanged(instance) {
 	}
 }
 
-let saronTableTitle = "custom"
 const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 	defaultColAlign: 'left',
 	minDimensions: [2, 26],
@@ -146,40 +148,50 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 			decimal:'.'
 		},
 	],
+	text:{
+        insertANewRowBefore:'Insert new rows before',
+        insertANewRowAfter:'Insert new rows after',
+    },
 	onchange: cellChanged,
-	oninsertrow: rowInserted,   
+	oninsertrow: rowInserted,
+	ondeleterow: deleteRows,
 	onload: ratesChanged,
-	onpaste: ratesChanged,
+	onpaste: tableChanged,
 	width: '300px',
 	rowResize: false,
 	columnDrag: false,
 })
 
+function deleteRows(a,b,c,d,e) {
+	tableChanged()
+}
+
+function tableChanged() {
+	ratesChanged(saronTable)
+	const itemInfo = EH.addItemToHistory(saronTableTitle, getValidTableDataAsJson())
+	updateEditorHistoryChooserData(itemInfo.metaKey)
+}
+
 function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
+	jexcel.current.ignoreEvents = true
+	
 	console.log(instance, jexcel.current.options.data.length, rowNumber, numOfRows, insertBefore)
+	if(numOfRows === 1)
+		numOfRows = jexcel.current.getSelectedRows().length
+	if(numOfRows>1) jexcel.current.insertRow(numOfRows-1, rowNumber, insertBefore)
 	let lastRow = jexcel.current.options.data.length-1
-	let delta = 1
-	let i = Math.min(lastRow, rowNumber+numOfRows)
-	if(i >= lastRow) { delta = -1; lastRow=0; i=Math.max(rowNumber-1,0) }
-	while(i != lastRow) {
-		let srcData = jexcel.current.getRowData(i)
-		if(!srcData || !srcData[0].match(/^[12]...-..-...*/)) {
-			if(rowNumber-numOfRows>=0)
-				srcData = jexcel.current.getRowData(rowNumber+numOfRows)
-			if(srcData[0] === "") srcData[0] = isoDate(new Date())
-		} else {
-			console.log(srcData)
-			srcData[1] = ""
-			let newDate = srcData[0]
-			for(let j=numOfRows-1;j>=0;j--) {
-				newDate = plusSwissWorkingDays(newDate, 1, true)
-				srcData[0] = newDate
-				jexcel.current.setRowData(rowNumber+j, srcData)
-			}
-			break
-		}
-		i+=delta
+	let srcRow = rowNumber+numOfRows
+	const prevWorkingDate = plusSwissWorkingDays(isoDate(new Date()), -1)
+	let srcDate = srcRow<=lastRow?jexcel.current.getRowData(srcRow)[0]:prevWorkingDate
+	if(!srcDate.match(/^[12]...-..-..$/)) srcDate  = prevWorkingDate
+	console.log("srcDate = "+srcDate)
+	let newDate = srcDate
+	for(let j=numOfRows-1;j>=0;j--) {
+		newDate = plusSwissWorkingDays(newDate, 1)
+		jexcel.current.setRowData(rowNumber+j, [newDate, ""])
 	}
+
+	jexcel.current.ignoreEvents = false
 }
 
 function cellChanged(instance, cell, x, y, value) {
@@ -209,18 +221,13 @@ function cellChanged(instance, cell, x, y, value) {
 function getValidTableDataAsJson() {
 	const data = saronTable.getData().filter(e => 
 		e[0].match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
-		&& e[1].match(/^-*[0-9.]+$/)
+		//&& e[1].match(/^-*[0-9.]+$/)
 	)
 	return JSON.stringify(data)
 }
 
 function rowChanged(rowData) {
-	if(rowData.indexOf("")<0) {
-		addItemToHistory(saronTableTitle, getValidTableDataAsJson())
-		console.log(getHistoryMetaData())
-		console.log(getNewestItemData())
-		updateEditorHistoryChooserData()
-	}
+	if(rowData.indexOf("")<0) tableChanged()
 }
 
 async function postJson(url, requestData) {
@@ -382,23 +389,24 @@ function importFile0(file) {
 	}
 
 	const reader = new FileReader();
-	reader.readAsText(file);
+	reader.readAsText(file)
 	reader.onload = () => storeResults(reader.result)
 }
 
 function removeCurrentHistoryEntry() {
 	const metaKey = editorHistoryChooser.getValue()
 	if(metaKey && metaKey !== "") {
-		removeItem(metaKey)
+		const nextItem = EH.removeItem(metaKey)
 		updateEditorHistoryChooserData()
+		if(nextItem) editorHistoryChooser.setValue(nextItem.metaKey)
 	}
 }
 
 function importDirect(data) {
 	if(data.dropdown) {
 		const metaKey = editorHistoryChooser.getValue()
-		data = getItemData(metaKey)
-		saronTableTitle = getItemInfo(metaKey).title
+		data = EH.getItemData(metaKey)
+		saronTableTitle = EH.getItemInfo(metaKey).title
 	} else saronTableTitle = "custom"
 	saronTable.setData(JSON.parse(data))
 }
@@ -419,6 +427,7 @@ async function importFile() {
 		const file = mode.substring("Local ".length)
 		const data = await importResource("./data/"+file)
 		saronTableTitle = file
+		editorHistoryChooser.setValue("")
 		storeResults(data)
 	}
 }
