@@ -23,9 +23,8 @@ function isWeekDay(date) {
 
 function plusDays(isoDateStr, days, onlyWeekdays) {
 	let isBankHoliday = onlyWeekdays
-	if(onlyWeekdays === undefined || ! typeof isBankHoliday === 'function') {
-		isBankHoliday = (date) => onlyWeekdays?!isWeekDay(localDate(date)):false
-	}
+	if(onlyWeekdays === undefined || ! (typeof isBankHoliday === 'function'))
+		isBankHoliday = function(date) { onlyWeekdays?!isWeekDay(localDate(date)):false }
 	if(typeof isoDateStr.getMonth === 'function')
 		isoDateStr = isoDate(isoDateStr)
 	const date = localDate(isoDateStr)
@@ -209,5 +208,14 @@ function test() {
 
 test()
 
-export { localDate, diffDays, plusDays, plusSwissWorkingDays, 
-	isSwissBankHoliDay, isoDate, getPrevPeriod }
+var DateUtils = {
+	localDate: localDate,
+	diffDays: diffDays,
+	plusDays: plusDays,
+	plusSwissWorkingDays: plusSwissWorkingDays,
+	isSwissBankHoliDay: isSwissBankHoliDay,
+	isoDate: isoDate,
+	getPrevPeriod: getPrevPeriod,
+}
+export { DateUtils /*, localDate, diffDays, plusDays, plusSwissWorkingDays, 
+isSwissBankHoliDay, isoDate, getPrevPeriod*/ }

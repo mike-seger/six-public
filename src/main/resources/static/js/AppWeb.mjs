@@ -1,5 +1,5 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
-import { getPrevPeriod, plusDays, plusSwissWorkingDays, isoDate } from './DateUtils.mjs'
+import { DateUtils as DU } from './DateUtils.mjs'
 import { updateRateDisplay } from './RateDisplay.mjs'
 import { formattedRound } from './NumberUtils.mjs'
 import { Spinner } from './Spinner.mjs'
@@ -63,9 +63,9 @@ const exportChooser = jSuites.dropdown(document.getElementById('export-chooser')
 
 function createExportChooserData() {
 	let date = maxDate
-	const prevQuarter = getPrevPeriod(date, 3)
-	const prevSemester = getPrevPeriod(date, 6)
-	const prevYear = getPrevPeriod(date, 12)
+	const prevQuarter = DU.getPrevPeriod(date, 3)
+	const prevSemester = DU.getPrevPeriod(date, 6)
+	const prevYear = DU.getPrevPeriod(date, 12)
 	const semQuarter = (prevSemester.n-1)*2
 	const data = [
 		{ group:'Predefined Ranges', value: `${prevQuarter.start} ${prevQuarter.end}`, 
@@ -111,7 +111,7 @@ function ratesChanged(instance) {
 		const dates = validData.map(rate => rate[0])
 		dates.sort()
 		minDate = dates[0].substring(0,10)
-		maxDate = plusDays(new Date(dates[dates.length-1].substring(0,10)), 1)
+		maxDate = DU.plusDays(new Date(dates[dates.length-1].substring(0,10)), 1)
 		chooserData = createExportChooserData()
 		exportChooser.setData(chooserData)
 		exportChooserChanged(exportChooser)
@@ -206,13 +206,13 @@ function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
 	console.log(instance, jexcel.current.options.data.length, rowNumber, numOfRows, insertBefore)
 	let lastRow = jexcel.current.options.data.length-1
 	let srcRow = rowNumber+numOfRows
-	const prevWorkingDate = plusSwissWorkingDays(isoDate(new Date()), -1)
+	const prevWorkingDate = DU.plusSwissWorkingDays(DU.isoDate(new Date()), -1)
 	let srcDate = srcRow<=lastRow?jexcel.current.getRowData(srcRow)[0]:prevWorkingDate
 	if(!srcDate.match(/^[12]...-..-..$/)) srcDate  = prevWorkingDate
 	console.log("srcDate = "+srcDate)
 	let newDate = srcDate
 	for(let j=numOfRows-1;j>=0;j--) {
-		newDate = plusSwissWorkingDays(newDate, 1)
+		newDate = DU.plusSwissWorkingDays(newDate, 1)
 		jexcel.current.setRowData(rowNumber+j, [newDate, ""])
 	}
 
