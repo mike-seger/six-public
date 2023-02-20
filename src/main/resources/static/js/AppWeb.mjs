@@ -19,6 +19,8 @@ const offline = document.getElementById('offline')
 const offlineParameter = document.getElementById('offline-parameter')
 const removeButton = document.getElementById('removeEntry')
 const exportButton = document.getElementById('export')
+const saronTableElement = document.getElementById('saron-table')
+const dropZone = document.getElementById('dropzone')
 
 const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
@@ -123,7 +125,7 @@ function ratesChanged(instance) {
 	}
 }
 
-const saronTable = jspreadsheet(document.getElementById('saron-table'), {
+const saronTable = jspreadsheet(saronTableElement, {
 	defaultColAlign: 'left',
 	minDimensions: [2, 26],
 	allowInsertRow:true,
@@ -150,7 +152,7 @@ const saronTable = jspreadsheet(document.getElementById('saron-table'), {
 		},
 	],
 	//onevent: tableEvent,
-	//onafterchanges: onAfterChanges,
+	onafterchanges: onAfterChanges,
 	onchange: cellChanged,
 	oninsertrow: rowInserted,
 	ondeleterow: deleteRows,
@@ -203,9 +205,9 @@ function deleteRows(a,b,c,d,e) {
 }
 
 function tableChanged() {
-	ratesChanged(saronTable)
 	const itemInfo = EH.addItemToHistory(saronTableTitle, getValidTableDataAsJson())
 	updateEditorHistoryChooserData(itemInfo.metaKey)
+	ratesChanged(saronTable)
 }
 
 function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
@@ -541,6 +543,67 @@ function importFileDialog() {
 
 	input.click()
 }
+
+window.addEventListener("DOMContentLoaded", () => {
+
+	function activate(e) {
+		console.log('activate', e)
+		e.preventDefault()
+	}
+
+	function dragover(e) {
+//		console.log('dragover', e)
+		e.preventDefault()
+	}
+
+	function dragleave(e) {
+		//e.target.classList.remove("dragover")
+		if(! saronTableContent.contains( e.target )) {
+			saronTableElement.classList.remove("dragging")
+			saronTableContent.classList.remove("dragging")
+			console.log('dragleave', e)
+			e.preventDefault()
+		}
+	}
+
+	function dragend(e) {
+		console.log('dragend', e)
+		e.preventDefault()
+	}
+
+	function dragenter(e) {
+		//e.target.classList.add("dragover")
+		saronTableElement.classList.add("dragging")
+		saronTableContent.classList.add("dragging")
+		//dropZone.classList.add("anotherclass")
+		console.log('dragenter', e)
+		e.preventDefault()
+	}
+
+	function deactivate(e) {
+		//console.log('deactivate', e)
+	}
+
+	function update(e) {
+		console.log('update', e)
+		e.preventDefault()
+		dragleave(e)
+	}
+
+	const content = saronTableElement.getElementsByClassName("jexcel_content")
+	const saronTableContent = content[0]
+	saronTableElement.addEventListener("dragenter", dragenter)
+	dropZone.addEventListener("dragover", dragover)
+	saronTableElement.addEventListener("dragleave", dragleave)
+	dropZone.addEventListener("dragend", dragend)
+	dropZone.addEventListener("drop", update)
+	window.addEventListener("blur", deactivate)
+
+    // dropZone.addEventListener("dragstart", dragstart, false);
+	// dropZone.addEventListener("dragstart", dragstart, false);
+	// dropZone.addEventListener('ondrag', dragOver)
+	// dropZone.addEventListener('ondrop', drop)
+})
 
 removeButton.addEventListener('click', removeCurrentHistoryEntry)
 exportButton.addEventListener('click', exportFile)

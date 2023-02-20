@@ -160,3 +160,14 @@ a:active {
 	background-color: white;
 	transition: opacity 0.5s ease;
 }
+
+.dragover .jexcel_content {
+	/* background-color: purple; */
+	border: var(--active-color) 2px solid;
+}
+
+.jexcel_content.dragging {
+	border: var(--active-color) 3px solid
+}
+
+#saron-table.dragging * {pointer-events: none;}
