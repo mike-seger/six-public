@@ -426,7 +426,7 @@ async function exportFile0() {
 	} catch(err) { handleError(err) }
 }
 
-function importFile0(file) {
+function readSaronFile(file) {
 	if( !(
 			file.type === "text/tab-separated-values"
 			|| file.type === "text/csv"
@@ -436,13 +436,20 @@ function importFile0(file) {
 		return
 	}
 
-	const reader = new FileReader()
-	reader.readAsText(file)
-	reader.onload = () => {
-		editorHistoryChooser.setValue("")
-		storeResults(reader.result)
-		saronTableTitle = file.name
-		tableChanged()
+	Spinner.open()
+	try {
+		const reader = new FileReader()
+		reader.readAsText(file)
+		reader.onload = () => {
+			editorHistoryChooser.setValue("")
+			storeResults(reader.result)
+			saronTableTitle = file.name
+			tableChanged()
+			Spinner.close()
+		}
+	} catch(error) {
+		Spinner.close()
+		messageDialog("Error loading file: "+error)
 	}
 }
 
@@ -511,7 +518,7 @@ function importFileDialog() {
 	input.accept = ".csv, .tsv, .txt"
 	input.onchange = function(event) {
 		exporting = true
-		importFile0(input.files[0])
+		readSaronFile(input.files[0])
 	}
 
 	function addDialogClosedListener(input, callback) {
@@ -553,20 +560,20 @@ window.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function dragover(e) {
-		if(! saronTableContent.contains( e.target )) {
-			// saronTableElement.classList.remove("dragging")
-			// saronTableContent.classList.remove("dragging")
-		} else {
-			// saronTableElement.classList.add("dragging")
-			// saronTableContent.classList.add("dragging")
-		}
-//		console.log('dragover', e)
+// 		if(! saronTableContent.contains( e.target )) {
+// 			// saronTableElement.classList.remove("dragging")
+// 			// saronTableContent.classList.remove("dragging")
+// 		} else {
+// 			// saronTableElement.classList.add("dragging")
+// 			// saronTableContent.classList.add("dragging")
+// 		}
+// //		console.log('dragover', e)
 		e.preventDefault()
 	}
 
-	function dragleave(e) {
+	function dragleave(e, force=false) {
 		//e.target.classList.remove("dragover")
-		if(! saronTableContent.contains( e.target )) {
+		if(force || ! saronTableContent.contains( e.target )) {
 			saronTableElement.classList.remove("dragging")
 			saronTableContent.classList.remove("dragging")
 			//console.log('dragleave', e)
@@ -584,22 +591,29 @@ window.addEventListener("DOMContentLoaded", () => {
 		saronTableElement.classList.add("dragging")
 		saronTableContent.classList.add("dragging")
 		//dropZone.classList.add("anotherclass")
-		//console.log('dragenter', e)
+		console.log('dragenter', e)
 		e.preventDefault()
 	}
 
-	function deactivate(e) {
-		//console.log('deactivate', e)
-	}
+	function deactivate(e) { dragleave(e, true) }
 
-	function drop(e) {
+	function drop(e, a, b, c, d) {
 		if(! saronTableContent.contains( e.target )) {
-			console.log('drop', e)
-		}
+			console.log('nodrop', e)
+		} else console.log('drop', e)
+
+		// console.log('drop ', e?.dataTransfer)
+		// console.log('drop ', e?.dataTransfer?.files)
+		// console.log('drop ', e?.dataTransfer?.files?.length)
 		saronTableElement.classList.remove("dragging")
 		saronTableContent.classList.remove("dragging")
 		e.preventDefault()
 		dragleave(e)
+		
+		if(e?.dataTransfer?.files?.length >= 1) {
+			console.log('drop ', e?.dataTransfer?.files[0])
+			readSaronFile(e?.dataTransfer?.files[0])
+		}
 	}
 
 	const content = saronTableElement.getElementsByClassName("jexcel_content")
@@ -607,7 +621,8 @@ window.addEventListener("DOMContentLoaded", () => {
 	saronTableElement.addEventListener("dragenter", dragenter)
 	dropZone.addEventListener("dragover", dragover)
 	saronTableElement.addEventListener("dragleave", dragleave)
-	dropZone.addEventListener("dragend", dragend)
+	dropZone.addEventListener("dragstart", activate)
+	//dropZone.addEventListener("dragend", dragend)
 	dropZone.addEventListener("drop", drop)
 	window.addEventListener("blur", deactivate)
 
