@@ -1,8 +1,8 @@
 import { NumberUtils } from './NumberUtils.mjs'
 
-let chart = createChart() 
+let chart = create() 
 
-function createChart() {
+function create() {
 	var options = {
 		series: [],
 		chart: {

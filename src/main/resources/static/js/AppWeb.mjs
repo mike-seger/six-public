@@ -544,6 +544,7 @@ function importFileDialog() {
 	input.click()
 }
 
+
 window.addEventListener("DOMContentLoaded", () => {
 
 	function activate(e) {
@@ -552,6 +553,13 @@ window.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function dragover(e) {
+		if(! saronTableContent.contains( e.target )) {
+			// saronTableElement.classList.remove("dragging")
+			// saronTableContent.classList.remove("dragging")
+		} else {
+			// saronTableElement.classList.add("dragging")
+			// saronTableContent.classList.add("dragging")
+		}
 //		console.log('dragover', e)
 		e.preventDefault()
 	}
@@ -561,7 +569,7 @@ window.addEventListener("DOMContentLoaded", () => {
 		if(! saronTableContent.contains( e.target )) {
 			saronTableElement.classList.remove("dragging")
 			saronTableContent.classList.remove("dragging")
-			console.log('dragleave', e)
+			//console.log('dragleave', e)
 			e.preventDefault()
 		}
 	}
@@ -576,7 +584,7 @@ window.addEventListener("DOMContentLoaded", () => {
 		saronTableElement.classList.add("dragging")
 		saronTableContent.classList.add("dragging")
 		//dropZone.classList.add("anotherclass")
-		console.log('dragenter', e)
+		//console.log('dragenter', e)
 		e.preventDefault()
 	}
 
@@ -584,8 +592,12 @@ window.addEventListener("DOMContentLoaded", () => {
 		//console.log('deactivate', e)
 	}
 
-	function update(e) {
-		console.log('update', e)
+	function drop(e) {
+		if(! saronTableContent.contains( e.target )) {
+			console.log('drop', e)
+		}
+		saronTableElement.classList.remove("dragging")
+		saronTableContent.classList.remove("dragging")
 		e.preventDefault()
 		dragleave(e)
 	}
@@ -596,7 +608,7 @@ window.addEventListener("DOMContentLoaded", () => {
 	dropZone.addEventListener("dragover", dragover)
 	saronTableElement.addEventListener("dragleave", dragleave)
 	dropZone.addEventListener("dragend", dragend)
-	dropZone.addEventListener("drop", update)
+	dropZone.addEventListener("drop", drop)
 	window.addEventListener("blur", deactivate)
 
     // dropZone.addEventListener("dragstart", dragstart, false);
@@ -604,6 +616,84 @@ window.addEventListener("DOMContentLoaded", () => {
 	// dropZone.addEventListener('ondrag', dragOver)
 	// dropZone.addEventListener('ondrop', drop)
 })
+
+/*
+window.addEventListener("DOMContentLoaded", () => {
+	function dragover(e) {
+// 		if(! saronTableContent.contains( e.target )) {
+// 			// saronTableElement.classList.remove("dragging")
+// 			// saronTableContent.classList.remove("dragging")
+// 		} else {
+// 			// saronTableElement.classList.add("dragging")
+// 			// saronTableContent.classList.add("dragging")
+// 		}
+// //		console.log('dragover', e)
+// 		e.preventDefault()
+	}
+
+	function dragleave(e) {
+		console.log('dragleave', e)
+		//e.target.classList.remove("dragover")
+		if(e.type === 'blur' || ! dropZone.contains( e.target )) {
+			//saronTableContent.classList.remove("dragging")
+			dropZone.classList.remove("dragging")
+			//console.log('dragleave', e)
+			//e.preventDefault()
+		}
+	}
+
+	// function dragend(e) {
+	// 	console.log('dragend', e)
+	// 	e.preventDefault()
+	// }
+
+	function dragenter(e) {
+		console.log('dragenter', e)
+		//e.target.classList.add("dragover")
+		//saronTableContent.classList.add("dragging")
+		dropZone.classList.add("dragging")
+		//dropZone.classList.add("anotherclass")
+		//console.log('dragenter', e)
+		//e.preventDefault()
+	}
+
+	// function deactivate(e) {
+	// 	console.log('deactivate', e)
+	// }
+
+	function mouseup(e) {
+		console.log('mouseup', e)
+		if(dropZone.classList.contains("dragging")) {
+			dragleave(e)
+		}
+	}
+
+	function drop(e) {
+		if(! dropZone.contains( e.target )) {
+			console.log('drop', e)
+		}
+		dropZone.classList.remove("dragging")
+		e.preventDefault()
+		dragleave(e)
+	}
+
+	const content = saronTableElement.getElementsByClassName("jexcel_content")
+	const saronTableContent = content[0]
+	dropZone.addEventListener("dragenter", dragenter)
+	dropZone.addEventListener("dragover", dragover)
+	dropZone.addEventListener("dragleave", dragleave)
+	dropZone.addEventListener("dragend", dragleave)
+	dropZone.addEventListener("drop", drop)
+	window.addEventListener("mouseup", mouseup)
+	//dropZone.addEventListener("blur", dragleave)
+	//window.addEventListener("blur", dragleave)
+
+    // dropZone.addEventListener("dragstart", dragstart, false);
+	// dropZone.addEventListener("dragstart", dragstart, false);
+	// dropZone.addEventListener('ondrag', dragOver)
+	// dropZone.addEventListener('ondrop', drop)
+})
+*/
 
 removeButton.addEventListener('click', removeCurrentHistoryEntry)
 exportButton.addEventListener('click', exportFile)

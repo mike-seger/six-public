@@ -161,6 +161,12 @@ a:active {
 	transition: opacity 0.5s ease;
 }
 
+/* #dropzone.dragging {
+	border: var(--active-color) 3px solid
+}
+
+#dropzone.dragging * { pointer-events: none;} */
+
 .dragover .jexcel_content {
 	/* background-color: purple; */
 	border: var(--active-color) 2px solid;
