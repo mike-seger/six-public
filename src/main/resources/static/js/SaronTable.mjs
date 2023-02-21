@@ -7,34 +7,34 @@ export class SaronTable {
     }
 
     init() {
-        const tableElement = this.saronTableElement
+        const jexcel = this.saronTableElement.jexcel
         const self = this
 
         function jexcelChanged(instance) {
-            this.tableChanged(self)
+            self.tableChanged(self)
         }
     
         function deleteRows(a,b,c,d,e) {
-            this.jexcelChanged()
+            self.jexcelChanged()
         }
     
         function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
-            tableElement.jexcel.ignoreEvents = true
+            jexcel.ignoreEvents = true
     
             console.log(instance, jexcel.current.options.data.length, rowNumber, numOfRows, insertBefore)
-            let lastRow = tableElement.jexcel.options.data.length-1
+            let lastRow = jexcel.options.data.length-1
             let srcRow = rowNumber+numOfRows
             const prevWorkingDate = DU.plusSwissWorkingDays(DU.isoDate(new Date()), -1)
-            let srcDate = srcRow<=lastRow?tableElement.jexcel.getRowData(srcRow)[0]:prevWorkingDate
+            let srcDate = srcRow<=lastRow?jexcel.getRowData(srcRow)[0]:prevWorkingDate
             if(!srcDate.match(/^[12]...-..-..$/)) srcDate  = prevWorkingDate
             console.log("srcDate = "+srcDate)
             let newDate = srcDate
             for(let j=numOfRows-1;j>=0;j--) {
                 newDate = DU.plusSwissWorkingDays(newDate, 1)
-                tableElement.jexcel.setRowData(rowNumber+j, [newDate, ""])
+                jexcel.setRowData(rowNumber+j, [newDate, ""])
             }
     
-            tableElement.jexcel.ignoreEvents = false
+            jexcel.ignoreEvents = false
         }
     
         function cellsSelected(el, px, py, ux, uy, origin) {
@@ -46,23 +46,23 @@ export class SaronTable {
     
         function onAfterChanges(instance, cells) {
             cells.map(cell => this.cellChanged(instance, cell, cell.x, cell.y, cell.newValue))
-            this.tableChanged(self)
+            self.tableChanged(self)
         }
     
         function cellChanged(el, cell, x, y, value) {
             if(value) {
-                tableElement.jexcel.ignoreEvents = true
-                const name = tableElement.jexcel.getColumnNameFromId([x,y])
+                jexcel.ignoreEvents = true
+                const name = jexcel.getColumnNameFromId([x,y])
                 value = (value+"").replace(/[^\d.-]/gm, "")
                 if (x==0 && value.match(/^[12]...-..-...*/)) {
-                    tableElement.jexcel.setValue(name, value.substring(0,10))
-                    this.rowChanged(tableElement.jexcel.getRowData(y))
+                    jexcel.setValue(name, value.substring(0,10))
+                    this.rowChanged(jexcel.getRowData(y))
                 } else if(x==1) {
                     if(value.startsWith(".") || value.startsWith("-."))
                         value = value.replace(".", "0.")
                     if(value.match(/^-*(\d+)(,\d{0,}|\.\d{1,})?$/)) {
-                        tableElement.jexcel.setValue(name, NumberUtils.formattedRound(Number(value), 6))
-                        this.rowChanged(tableElement.jexcel.getRowData(y))
+                        jexcel.setValue(name, NumberUtils.formattedRound(Number(value), 6))
+                        this.rowChanged(jexcel.getRowData(y))
                     }
                 } else {
                     console.log(`Invalid value at (${x}/${y}) ${value}`)
