@@ -1,3 +1,5 @@
+@charset "utf-8";
+
 .jexcel {
 	border-top: 0;
 }
@@ -23,12 +25,12 @@
 
 .jexcel_content > table > thead > tr > td.arrow-down:after {
 	content: " ▲";
-	font-size: 11px;
+	font-size: 12px;
 }
 
 .jexcel_content > table > thead > tr > td.arrow-up:after {
 	content: " ▼";
-	font-size: 11px;
+	font-size: 12px;
 }
 
 /* TABS */
@@ -54,7 +56,7 @@
 
 /* TEXT FORMAT */
 .jexcel * {
-	font-family: sans-serif;
+	font-family: var(--font-family);
 }
 
 /* SEARCH CONTAI£NER */

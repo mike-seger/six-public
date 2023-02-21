@@ -1,6 +1,7 @@
 :root {
     --button-color: rgb(41, 139, 168);
     --active-color: #4974c5;
+	--font-family: sans-serif
 }
 
 body, html {
@@ -11,7 +12,7 @@ body, html {
 }
 
 html {
-	font-family: sans-serif;
+	font-family: var(--font-family);
 }
 
 body {
@@ -144,7 +145,7 @@ a:active {
 #saronInfoMessage .jmodal_title {
 	height: 40px !important;
 	font-size: 18px !important;
-	font-family: sans-serif !important;
+	font-family: var(--font-family) !important;
 }
 
 #saronInfoMessage .jmodal_content{
