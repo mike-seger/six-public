@@ -1,4 +1,4 @@
-import { range } from './NumberUtils.mjs'
+import { NumberUtils } from './NumberUtils.mjs'
 
 function localDate(isoDateString) {
 	if(typeof isoDateString.getMonth === 'function')
@@ -115,7 +115,8 @@ function swissBankHolidaysIso(isoDate) {
 
 function cacheSwissHolidays() {
 	const cache = new Map()
-	range(1990, 2040).map(year => cache.set(String(year), swissBankHolidaysIso(year)))
+	NumberUtils.range(1990, 2040)
+		.map(year => cache.set(String(year), swissBankHolidaysIso(year)))
 	return cache
 }
 

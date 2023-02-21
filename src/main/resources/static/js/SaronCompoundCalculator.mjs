@@ -1,5 +1,5 @@
-import { DateUtils as DU } from './DateUtils.mjs'
-import { range, formattedRound } from './NumberUtils.mjs'
+import { DateUtils as DU } from './utils/DateUtils.mjs'
+import { NumberUtils } from './utils/NumberUtils.mjs'
 
 function doValidateRateMap(rateMap, startDate, endDate) {
 	let date = startDate
@@ -24,10 +24,11 @@ function compoundRate(rateMap, startDate, endDate, validateRateMap = true) {
 	}
 
 	const result = (product - 1) * 36000.0 / DU.diffDays(startDate, endDate)
-	return { startDate: startDate, endDate: endDate, value: formattedRound(result, 4) }
+	return { startDate: startDate, endDate: endDate, value: NumberUtils.formattedRound(result, 4) }
 }
 
 function compundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
+	console.log(rateMap, startDate, endDate, all, allStartDates)
 	const compoundRates = []
 	const dates = rateMap.keys()
 	doValidateRateMap(rateMap, startDate, endDate)
@@ -39,13 +40,13 @@ function compundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 	if(DU.plusDays(endDate, -10) > dates[dates.length-1])
 		throw("Enddate is after last rate date: "+dates[dates.length-1])
 	if(all)
-		range(0, DU.diffDays(startDate, endDate)).forEach(
+		NumberUtils.range(0, DU.diffDays(startDate, endDate)).forEach(
 			offset => {
 				const sd = DU.plusDays(startDate, offset)
 				const ed = DU.plusDays(sd, 1)
 				console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + DU.diffDays(startDate, sd) + " / " + compoundRates.length);
 				if(allStartDates)
-					range(0, DU.diffDays(ed, endDate)+1).forEach(edOffset =>
+					NumberUtils.range(0, DU.diffDays(ed, endDate)+1).forEach(edOffset =>
 						compoundRates.push(compoundRate(rateMap, sd, DU.plusDays(ed, edOffset, false))
 					))
 				else compoundRates.push(compoundRate(rateMap, sd, endDate, false))            

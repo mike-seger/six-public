@@ -1,4 +1,4 @@
-import { DateUtils as DU } from './DateUtils.mjs'
+import { DateUtils as DU } from './utils/DateUtils.mjs'
 
 function loadRates(data) {
 	let objArray = null

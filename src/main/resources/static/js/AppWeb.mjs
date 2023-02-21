@@ -1,11 +1,14 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
-import { DateUtils as DU } from './DateUtils.mjs'
-import { RateDisplay } from './RateDisplay.mjs'
-import { formattedRound } from './NumberUtils.mjs'
-import { Spinner } from './Spinner.mjs'
+import { DateUtils as DU } from './utils/DateUtils.mjs'
+import { RateGraph } from './RateGraph.mjs'
+import { NumberUtils } from './utils/NumberUtils.mjs'
+import { Spinner } from './utils/ui/Spinner.mjs'
 import { EditorHistory as EH } from './EditorHistory.mjs'
-import { JSpreadSheetUtils } from './JSpreadSheetUtils.mjs'
-import { enableFileDrop } from './FileDropper.mjs'
+import { JSpreadSheetHelper } from './utils/ui/JSpreadSheetHelper.mjs'
+import { FileDropper } from './utils/ui/FileDropper.mjs'
+import { ExportChooser } from './ExportChooser.mjs'
+import { SaronCompoundDownloader } from './SaronCompoundDownloader.mjs'
+import { stripHtmlTags } from './utils/HtmlUtils.mjs'
 
 let saronCalculator = null
 
@@ -27,8 +30,8 @@ const customParameters = document.getElementById('custom-parameters')
 
 let maxDate = new Date()
 let minDate = maxDate
-let chooserData = createExportChooserData()
 let saronTableTitle = "custom"
+let exportChooser = new ExportChooser('export-chooser', exportChooserChanged)
 
 const importChooser = jSuites.dropdown(document.getElementById('import-chooser'), {
 	data: [
@@ -59,36 +62,9 @@ function updateEditorHistoryChooserData(metaKey) {
 
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
-const exportChooser = jSuites.dropdown(document.getElementById('export-chooser'), {
-	data: chooserData,
-	onchange: function(el,val) { exportChooserChanged(val) }
-})
-
-function createExportChooserData() {
-	let date = maxDate
-	const prevQuarter = DU.getPrevPeriod(date, 3)
-	const prevSemester = DU.getPrevPeriod(date, 6)
-	const prevYear = DU.getPrevPeriod(date, 12)
-	const semQuarter = (prevSemester.n-1)*2
-	const data = [
-		{ group:'Predefined Ranges', value: `${prevQuarter.start} ${prevQuarter.end}`, 
-			text: `Q${prevQuarter.n} '${prevQuarter.year99} (${prevQuarter.sMonth}-${prevQuarter.eMonth})` },
-		{ group:'Predefined Ranges', value: `${prevSemester.start} ${prevSemester.end}`, 
-			text: `Q${semQuarter}+Q${semQuarter+1} '${prevSemester.year99} (${prevSemester.sMonth}-${prevSemester.eMonth})` },
-		{ group:'Predefined Ranges', value: `${prevYear.start} ${prevYear.end}`, 
-			text: `${prevYear.year} (${prevYear.sMonth}-${prevYear.eMonth})` },
-		{ group:'Predefined Ranges', value: `${minDate} ${maxDate}`, 
-			text: `All (${minDate} - ${maxDate})` },
-		{ group:'Custom Range', value:'custom', 
-			text:'Range...' },
-	]
-
-	return data
-}
 
 function initParameters() {
 	importChooser.setValue("")
-	exportChooser.setValue(chooserData[0].value)
 	updateEditorHistoryChooserData()
 	offline.checked = true
 	allStartDates.checked = true
@@ -104,7 +80,7 @@ function ratesChanged(instance) {
 	const data = jexcel.getData()
 
 	setTimeout(function() {
-		RateDisplay.update(data)
+		RateGraph.update(data)
 	}, 100)
 
 	const validData = data
@@ -115,10 +91,9 @@ function ratesChanged(instance) {
 		dates.sort()
 		minDate = dates[0].substring(0,10)
 		maxDate = DU.plusDays(new Date(dates[dates.length-1].substring(0,10)), 1)
-		chooserData = createExportChooserData()
-		exportChooser.setData(chooserData)
-		exportChooserChanged(exportChooser)
-		exportChooser.setValue(chooserData[0].value)
+		exportChooser.change(minDate, maxDate)
+		//exportChooserChanged(exportChooser)
+
 		exportParameters.style.display = "block"
 	} else {
 		exportParameters.style.display = "none"
@@ -196,10 +171,6 @@ const saronTable = jspreadsheet(saronTableElement, {
 	columnDrag: false,
 })
 
-// function tableEvent(a,b,c,d,e) {
-// 	console.log(a,b,c,d,e)
-// }
-
 function deleteRows(a,b,c,d,e) {
 	tableChanged()
 }
@@ -232,7 +203,7 @@ function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
 function cellsSelected(el, px, py, ux, uy, origin) {
 	if(py === uy) {
 		const isoDate = jexcel.current.getValueFromCoords(0, py)
-		RateDisplay.annotatePoint(isoDate)
+		RateGraph.annotatePoint(isoDate)
 	}
 }
 
@@ -253,7 +224,7 @@ function cellChanged(instance, cell, x, y, value) {
 			if(value.startsWith(".") || value.startsWith("-."))
 				value = value.replace(".", "0.")
 			if(value.match(/^-*(\d+)(,\d{0,}|\.\d{1,})?$/)) {
-				jexcel.current.setValue(name, formattedRound(Number(value), 6))
+				jexcel.current.setValue(name, NumberUtils.formattedRound(Number(value), 6))
 				rowChanged(jexcel.current.getRowData(y))
 			}
 		} else {
@@ -290,7 +261,7 @@ async function postJson(url, requestData) {
 		return data
 	} catch (e) {
 		console.log('error', e)
-		messageDialog("Error sending request:\n"+e)
+		messageDialog(`Error sending request to ${url}:\n${stripHtmlTags(e.trim())}`)
 		return null
 	}
 }
@@ -342,11 +313,11 @@ async function exportFile() {
 	Spinner.open()
 	console.time('Execution Time')
 	setTimeout(function() {
-		exportFile0()
+		downloadSaronCompoundFile()
 	}, 100)
 }
 
-async function exportFile0() {
+async function downloadSaronCompoundFile() {
 	function handleError(err) {
 		console.trace(err)
 		Spinner.close()
@@ -363,32 +334,6 @@ async function exportFile0() {
 			rates: d3.csvFormatBody(saronTable.getData())
 		}
 		
-		function processResponse(response, parse) {
-			let procData = null
-			if(response != null && parse) {
-				//console.log(response)
-				procData = JSON.parse(response)
-			} else if(response != null) {
-				procData = response
-				//console.log(JSON.stringify(procData).replaceAll(",{","\n,{"))
-			}
-
-			if(procData != null) {
-				const result = d3.csvFormat(procData)
-				let mimetype = "text/csv"
-				const timeStamp = new Date().toISOString().substring(0,16).replaceAll(/[:.-]/g, '_').replace('T', '-')
-				const dlLink = document.createElement('a')
-				dlLink.href = 'data:'+mimetype+';charset=utf-8,' + encodeURI(result)
-				dlLink.target = '_blank'
-				dlLink.download = 'saron-compound-'+startdate.value+'_'+endDate.value+'_'+ timeStamp +'.csv'
-				dlLink.click()
-				dlLink.remove()
-			}
-
-			console.timeEnd('Execution Time')
-			Spinner.close()
-		}
-
 		if(window.location.host.indexOf("mike-seger.github.io")>=0 || offline.checked) {
 			const data = saronTable.getData()
 			data.splice(0, 0, ["Date", "SaronRate"])
@@ -399,7 +344,7 @@ async function exportFile0() {
 				try {
 					if(e.data.type === 'saronCalculator') {
 						if(! e.data.error)
-							processResponse(e.data.procData, e.data.parse)
+							SaronCompoundDownloader.download(e.data.procData, e.data.parse)
 						else handleError(e.data.error)
 					} else handleError("Invalid worker response: "+e.data)
 				} catch(err) { handleError("Unexpected error occurred: "+err) }
@@ -420,10 +365,19 @@ async function exportFile0() {
 			} else throw ("Error starting a second SaronCalculator")
 		} else {
 			postJson("api/v1", JSON.stringify(request))
-				.then((procData) => processResponse(procData, true))
+				.then((procData) => SaronCompoundDownloader.download(procData, true))
 				.catch((err) => handleError(err))
 			}
 	} catch(err) { handleError(err) }
+}
+
+function removeCurrentHistoryEntry() {
+	const metaKey = editorHistoryChooser.getValue()
+	if(metaKey && metaKey !== "") {
+		const nextItem = EH.removeItem(metaKey)
+		updateEditorHistoryChooserData()
+		if(nextItem) editorHistoryChooser.setValue(nextItem.metaKey)
+	}
 }
 
 function readSaronFile(file) {
@@ -452,15 +406,6 @@ function readSaronFile(file) {
 	}
 }
 
-function removeCurrentHistoryEntry() {
-	const metaKey = editorHistoryChooser.getValue()
-	if(metaKey && metaKey !== "") {
-		const nextItem = EH.removeItem(metaKey)
-		updateEditorHistoryChooserData()
-		if(nextItem) editorHistoryChooser.setValue(nextItem.metaKey)
-	}
-}
-
 function importDirect(data) {
 	if(data.dropdown) {
 		const metaKey = editorHistoryChooser.getValue()
@@ -481,7 +426,7 @@ async function importFile() {
 	Spinner.open()
 	importChooser.setValue("")
 	if(mode === "SaronRatesUpload") {
-		importFileDialog()
+		FileDialog.open(".csv, .tsv, .txt", () => Spinner.close())
 	} else if(mode.startsWith("Local ")) {
 		const file = mode.substring("Local ".length)
 		const data = await importResource("./data/"+file)
@@ -509,47 +454,6 @@ async function importResource(location) {
 	}
 }
 
-function importFileDialog() {
-	Spinner.open()
-	let input = document.createElement('input')
-	let exporting = false
-	input.type = 'file'
-	input.accept = ".csv, .tsv, .txt"
-	input.onchange = function(event) {
-		exporting = true
-		readSaronFile(input.files[0])
-	}
-
-	function addDialogClosedListener(input, callback) {
-		let id = null
-		let active = false
-		let wrapper = function() { if (active) { active = false; callback() } }
-		let cleanup = function() { clearTimeout(id) }
-		let shedule = function(delay) { id = setTimeout(wrapper, delay) }
-		let onFocus = function() { cleanup(); shedule(1000) }
-		let onBlur = function() { cleanup() }
-		let onClick = function() { cleanup(); active = true}
-		let onChange = function() { cleanup(); shedule(0) }
-		input.addEventListener('click', onClick)
-		input.addEventListener('change', onChange)
-		window.addEventListener('focus', onFocus)
-		window.addEventListener('blur', onBlur)
-		return function() {
-			input.removeEventListener('click', onClick)
-			input.removeEventListener('change', onChange)
-			window.removeEventListener('focus', onFocus)
-			window.removeEventListener('blur', onBlur)
-		}
-	}
-
-	addDialogClosedListener(input, function() {
-		if(!exporting) Spinner.close()
-		console.log('File dialog closed!')
-	})
-
-	input.click()
-}
-
 removeButton.addEventListener('click', removeCurrentHistoryEntry)
 exportButton.addEventListener('click', exportFile)
 saronInfo.addEventListener('click', function (e) {
@@ -564,10 +468,10 @@ saronInfo.addEventListener('click', function (e) {
 
 function keyListener(e) {
 	if(e.key == 'PageDown' || e.key == 'PageUp') {
-		JSpreadSheetUtils.pageUpDown(jexcel.current, e.key == 'PageUp')
+		JSpreadSheetHelper.pageUpDown(jexcel.current, e.key == 'PageUp')
 	}
 }
 
 initParameters()
-enableFileDrop("dropzone", "dragging", readSaronFile)
+FileDropper.enableFileDrop("dropzone", "dragging", readSaronFile)
 document.addEventListener("keydown", keyListener)

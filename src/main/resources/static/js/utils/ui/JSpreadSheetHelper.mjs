@@ -67,6 +67,6 @@ function pageUpDown(js, up) {
 	js.updateSelectionFromCoords(x, firstRowIndex, x, firstRowIndex)
 }
 
-let JSpreadSheetUtils = { pageUpDown }
+let JSpreadSheetHelper = { pageUpDown }
 
-export { JSpreadSheetUtils }
+export { JSpreadSheetHelper }

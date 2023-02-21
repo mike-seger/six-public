@@ -164,5 +164,3 @@ a:active {
 
 #dropzone { margin-right: 8px; }
 #dropzone.dragging { border: var(--active-color) 3px solid; }
-
-/* #saron-table.dragging * {pointer-events: none;} */

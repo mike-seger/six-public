@@ -29,4 +29,4 @@ var NumberUtils = {
 	range, round, formattedRound
 }
 
-export { NumberUtils, range, round, formattedRound }
+export { NumberUtils }

@@ -46,4 +46,6 @@ function enableFileDrop(elementId, draggingClass,
 	})
 }
 
-export { enableFileDrop }
+let FileDropper = { enableFileDrop }
+
+export { FileDropper }

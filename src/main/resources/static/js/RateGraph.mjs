@@ -1,4 +1,4 @@
-import { NumberUtils } from './NumberUtils.mjs'
+import { NumberUtils } from './utils/NumberUtils.mjs'
 
 let chart = create() 
 
@@ -127,9 +127,9 @@ function annotatePoint(isoDate, timeoutMs = 3500) {
 	}
 }
 
-var RateDisplay = {
+var RateGraph = {
 	update, 
 	annotatePoint
 }
 
-export { RateDisplay }
+export { RateGraph }
