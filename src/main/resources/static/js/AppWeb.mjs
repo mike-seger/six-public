@@ -8,6 +8,7 @@ import { JSpreadSheetHelper } from './utils/ui/JSpreadSheetHelper.mjs'
 import { FileDropper } from './utils/ui/FileDropper.mjs'
 import { ExportChooser } from './ExportChooser.mjs'
 import { SaronCompoundDownloader } from './SaronCompoundDownloader.mjs'
+import { SaronTable } from './SaronTable.mjs'
 import { stripHtmlTags } from './utils/HtmlUtils.mjs'
 
 let saronCalculator = null
@@ -23,7 +24,6 @@ const offline = document.getElementById('offline')
 const offlineParameter = document.getElementById('offline-parameter')
 const removeButton = document.getElementById('removeEntry')
 const exportButton = document.getElementById('export')
-const saronTableElement = document.getElementById('saron-table')
 
 const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
@@ -63,7 +63,7 @@ function updateEditorHistoryChooserData(metaKey) {
 jSuites.calendar(startDate,{ format: 'YYYY-MM-DD' })
 jSuites.calendar(endDate,{ format: 'YYYY-MM-DD' })
 
-function initParameters() {
+function initInputs() {
 	importChooser.setValue("")
 	updateEditorHistoryChooserData()
 	offline.checked = true
@@ -74,10 +74,10 @@ function initParameters() {
 	exportParameters.style.display = "none"
 }
 
-function ratesChanged(instance) {
+function ratesChanged(saronTable) {
 	//console.log("Rates changed")
-	const jexcel = instance.jexcel?instance.jexcel:instance
-	const data = jexcel.getData()
+	//const jexcel = instance.jexcel?instance.jexcel:instance
+	const data = saronTable.getData()
 
 	setTimeout(function() {
 		RateGraph.update(data)
@@ -100,154 +100,7 @@ function ratesChanged(instance) {
 	}
 }
 
-const saronTable = jspreadsheet(saronTableElement, {
-	defaultColAlign: 'left',
-	minDimensions: [2, 26],
-	allowInsertRow:true,
-	allowManualInsertRow:true,
-	allowInsertColumn:false,
-	allowManualInsertColumn:false,
-	allowDeleteRow:true,
-	allowDeleteColumn:false,
-	tableOverflow:true,
-	columns: [
-		{
-			title: 'Date',
-			name: 'Date',
-			type: 'calendar',
-			options: { format:'YYYY-MM-DD' },
-			width:'120px',
-		},
-		{
-			title: 'SARON Rate',
-			name: 'SaronRate',
-			type: 'numeric',
-			width:'120px',
-			decimal:'.'
-		},
-	],
-	//onevent: tableEvent,
-	onafterchanges: onAfterChanges,
-	onchange: cellChanged,
-	oninsertrow: rowInserted,
-	ondeleterow: deleteRows,
-	onload: ratesChanged,
-	onpaste: tableChanged,
-	onundo: tableChanged,
-	onredo: tableChanged,
-	onselection: cellsSelected,
-	contextMenu: function(obj, x, y, e, items, section) {
-		var items = []
-
-		if (obj.options.allowInsertRow == true) {
-			items.push({
-				title: T('Insert new rows'),
-				onclick: function() {
-					let numOfRows = 1
-					let rowNum = parseInt(y)
-					let selectedRows = obj.getSelectedRows(true)
-					if(selectedRows) {
-						numOfRows = selectedRows.length
-						rowNum = Math.min.apply(Math, selectedRows)
-					}
-					obj.insertRow(numOfRows, rowNum, 1)
-				}
-			})
-		}
-	
-		if (obj.options.allowDeleteRow == true) {
-			items.push({
-				title: T('Delete selected rows'),
-				onclick: function() {
-					obj.deleteRow(obj.getSelectedRows().length ? undefined : parseInt(y))
-				}
-			})
-		}
-		
-		return items
-	},
-	width: '300px',
-	rowResize: false,
-	columnDrag: false,
-})
-
-function deleteRows(a,b,c,d,e) {
-	tableChanged()
-}
-
-function tableChanged() {
-	const itemInfo = EH.addItemToHistory(saronTableTitle, getValidTableDataAsJson())
-	updateEditorHistoryChooserData(itemInfo.metaKey)
-	ratesChanged(saronTable)
-}
-
-function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
-	jexcel.current.ignoreEvents = true
-
-	console.log(instance, jexcel.current.options.data.length, rowNumber, numOfRows, insertBefore)
-	let lastRow = jexcel.current.options.data.length-1
-	let srcRow = rowNumber+numOfRows
-	const prevWorkingDate = DU.plusSwissWorkingDays(DU.isoDate(new Date()), -1)
-	let srcDate = srcRow<=lastRow?jexcel.current.getRowData(srcRow)[0]:prevWorkingDate
-	if(!srcDate.match(/^[12]...-..-..$/)) srcDate  = prevWorkingDate
-	console.log("srcDate = "+srcDate)
-	let newDate = srcDate
-	for(let j=numOfRows-1;j>=0;j--) {
-		newDate = DU.plusSwissWorkingDays(newDate, 1)
-		jexcel.current.setRowData(rowNumber+j, [newDate, ""])
-	}
-
-	jexcel.current.ignoreEvents = false
-}
-
-function cellsSelected(el, px, py, ux, uy, origin) {
-	if(py === uy) {
-		const isoDate = jexcel.current.getValueFromCoords(0, py)
-		RateGraph.annotatePoint(isoDate)
-	}
-}
-
-function onAfterChanges(instance, cells) {
-	cells.map(cell => cellChanged(instance, cell, cell.x, cell.y, cell.newValue))
-	tableChanged()
-}
-
-function cellChanged(instance, cell, x, y, value) {
-	if(value) {
-		jexcel.current.ignoreEvents = true
-		const name = jexcel.getColumnNameFromId([x,y])
-		value = (value+"").replace(/[^\d.-]/gm, "")
-		if (x==0 && value.match(/^[12]...-..-...*/)) {
-			jexcel.current.setValue(name, value.substring(0,10))
-			rowChanged(jexcel.current.getRowData(y))
-		} else if(x==1) {
-			if(value.startsWith(".") || value.startsWith("-."))
-				value = value.replace(".", "0.")
-			if(value.match(/^-*(\d+)(,\d{0,}|\.\d{1,})?$/)) {
-				jexcel.current.setValue(name, NumberUtils.formattedRound(Number(value), 6))
-				rowChanged(jexcel.current.getRowData(y))
-			}
-		} else {
-			console.log(`Invalid value at (${x}/${y}) ${value}`)
-			value = ""
-		}
-		tableChanged()
-		//ratesChanged(instance)
-		jexcel.current.ignoreEvents = false
-	}
-}
-
-function getValidTableDataAsJson() {
-	const data = saronTable.getData().filter(e => 
-		e[0].match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
-		//&& e[1].match(/^-*[0-9.]+$/)
-	)
-	return JSON.stringify(data)
-}
-
-function rowChanged(rowData) {
-	if(rowData.indexOf("")<0) tableChanged()
-}
+const saronTable = new SaronTable('saron-table', ratesChanged)
 
 async function postJson(url, requestData) {
 	try {
@@ -465,13 +318,12 @@ saronInfo.addEventListener('click', function (e) {
 	box.style.left = `${x}px`
 	box.style.top = `${y}px`
 })
-
-function keyListener(e) {
+document.addEventListener("keydown", function keyListener(e) {
 	if(e.key == 'PageDown' || e.key == 'PageUp') {
 		JSpreadSheetHelper.pageUpDown(jexcel.current, e.key == 'PageUp')
 	}
-}
+})
 
-initParameters()
+initInputs()
 FileDropper.enableFileDrop("dropzone", "dragging", readSaronFile)
-document.addEventListener("keydown", keyListener)
+
