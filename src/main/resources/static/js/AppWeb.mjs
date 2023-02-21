@@ -81,7 +81,7 @@ function tableChanged(saronTable) {
 	const itemInfo = EH.addItemToHistory(saronTableTitle, 
 		saronTable.getValidTableDataAsJson())
 	updateEditorHistoryChooserData(itemInfo.metaKey)
-	ratesChanged(saronTable.jexcel)
+	ratesChanged(saronTable.saronTableElement)
 }
 
 function dateSelected(isoDate) {
