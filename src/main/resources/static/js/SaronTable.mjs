@@ -1,5 +1,3 @@
-
-
 export class SaronTable {
     constructor(tableElementId, tableChanged, tableLoaded, dateSelected) {
         this.saronTableElement = document.getElementById(tableElementId)
@@ -13,7 +11,7 @@ export class SaronTable {
         const self = this
 
         function jexcelChanged(instance) {
-            this.tableChanged(this)
+            this.tableChanged(self)
         }
     
         function deleteRows(a,b,c,d,e) {

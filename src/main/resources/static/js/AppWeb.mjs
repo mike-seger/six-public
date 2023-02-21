@@ -27,7 +27,6 @@ const exportButton = document.getElementById('export')
 const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
 
-let inited = false
 let saronTableTitle = "custom"
 const saronTable = new SaronTable('saron-table', 
 	tableChanged, ratesChanged, dateSelected).init()
@@ -56,8 +55,6 @@ const editorHistoryChooser = jSuites.dropdown(document.getElementById('editor-hi
 	width: '250px'
 })
 
-inited = true
-
 function updateEditorHistoryChooserData(metaKey) {
 	const data = new Array()
 	EH.getHistoryMetaData().map(item =>
@@ -81,12 +78,10 @@ function initInputs() {
 }
 
 function tableChanged(saronTable) {
-	if(inited) {
-		const itemInfo = EH.addItemToHistory(saronTableTitle, 
-			saronTable.getValidTableDataAsJson())
-		//updateEditorHistoryChooserData(itemInfo.metaKey)
-		ratesChanged(saronTable.jexcel)
-	}
+	const itemInfo = EH.addItemToHistory(saronTableTitle, 
+		saronTable.getValidTableDataAsJson())
+	updateEditorHistoryChooserData(itemInfo.metaKey)
+	ratesChanged(saronTable.jexcel)
 }
 
 function dateSelected(isoDate) {
