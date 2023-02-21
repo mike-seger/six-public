@@ -21,7 +21,6 @@ const offlineParameter = document.getElementById('offline-parameter')
 const removeButton = document.getElementById('removeEntry')
 const exportButton = document.getElementById('export')
 const saronTableElement = document.getElementById('saron-table')
-const dropZone = document.getElementById('dropzone')
 
 const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
