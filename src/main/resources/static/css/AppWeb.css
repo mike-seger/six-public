@@ -161,19 +161,7 @@ a:active {
 	transition: opacity 0.5s ease;
 }
 
-/* #dropzone.dragging {
-	border: var(--active-color) 3px solid
-}
+#dropzone { margin-right: 8px; }
+#dropzone.dragging { border: var(--active-color) 3px solid; }
 
-#dropzone.dragging * { pointer-events: none;} */
-
-.dragover .jexcel_content {
-	/* background-color: purple; */
-	border: var(--active-color) 2px solid;
-}
-
-.jexcel_content.dragging {
-	border: var(--active-color) 3px solid
-}
-
-#saron-table.dragging * {pointer-events: none;}
+/* #saron-table.dragging * {pointer-events: none;} */

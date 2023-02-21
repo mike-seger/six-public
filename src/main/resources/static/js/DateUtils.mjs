@@ -217,5 +217,4 @@ var DateUtils = {
 	isoDate: isoDate,
 	getPrevPeriod: getPrevPeriod,
 }
-export { DateUtils /*, localDate, diffDays, plusDays, plusSwissWorkingDays, 
-isSwissBankHoliDay, isoDate, getPrevPeriod*/ }
+export { DateUtils }

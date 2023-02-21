@@ -5,6 +5,7 @@ import { formattedRound } from './NumberUtils.mjs'
 import { Spinner } from './Spinner.mjs'
 import { EditorHistory as EH } from './EditorHistory.mjs'
 import { JSpreadSheetUtils } from './JSpreadSheetUtils.mjs'
+import { enableFileDrop } from './FileDropper.mjs'
 
 let saronCalculator = null
 
@@ -196,9 +197,9 @@ const saronTable = jspreadsheet(saronTableElement, {
 	columnDrag: false,
 })
 
-function tableEvent(a,b,c,d,e) {
-	console.log(a,b,c,d,e)
-}
+// function tableEvent(a,b,c,d,e) {
+// 	console.log(a,b,c,d,e)
+// }
 
 function deleteRows(a,b,c,d,e) {
 	tableChanged()
@@ -550,46 +551,6 @@ function importFileDialog() {
 	input.click()
 }
 
-
-window.addEventListener("DOMContentLoaded", () => {
-	function preventDefault(e) { e.preventDefault() }
-
-	function dragleave(e, force=false) {
-		if(force || ! saronTableContent.contains( e.target )) {
-			saronTableElement.classList.remove("dragging")
-			saronTableContent.classList.remove("dragging")
-			e.preventDefault()
-		}
-	}
-
-	function dragenter(e) {
-		saronTableElement.classList.add("dragging")
-		saronTableContent.classList.add("dragging")
-		console.log('dragenter', e)
-		e.preventDefault()
-	}
-
-	function drop(e, a, b, c, d) {
-		// saronTableElement.classList.remove("dragging")
-		// saronTableContent.classList.remove("dragging")
-		// e.preventDefault()
-		dragleave(e, true)
-
-		if(e?.dataTransfer?.files?.length >= 1) {
-			console.log('drop ', e?.dataTransfer?.files[0])
-			readSaronFile(e?.dataTransfer?.files[0])
-		}
-	}
-
-	const content = saronTableElement.getElementsByClassName("jexcel_content")
-	const saronTableContent = content[0]
-	saronTableElement.addEventListener("dragenter", dragenter)
-	dropZone.addEventListener("dragover", preventDefault)
-	dropZone.addEventListener("dragstart", preventDefault)
-	saronTableElement.addEventListener("dragleave", dragleave)
-	dropZone.addEventListener("drop", drop)
-})
-
 removeButton.addEventListener('click', removeCurrentHistoryEntry)
 exportButton.addEventListener('click', exportFile)
 saronInfo.addEventListener('click', function (e) {
@@ -609,4 +570,5 @@ function keyListener(e) {
 }
 
 initParameters()
+enableFileDrop("dropzone", "dragging", readSaronFile)
 document.addEventListener("keydown", keyListener)
