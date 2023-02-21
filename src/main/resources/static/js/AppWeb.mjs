@@ -1,7 +1,6 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
 import { DateUtils as DU } from './utils/DateUtils.mjs'
 import { RateGraph } from './RateGraph.mjs'
-import { NumberUtils } from './utils/NumberUtils.mjs'
 import { Spinner } from './utils/ui/Spinner.mjs'
 import { EditorHistory as EH } from './EditorHistory.mjs'
 import { JSpreadSheetHelper } from './utils/ui/JSpreadSheetHelper.mjs'
@@ -28,9 +27,13 @@ const exportButton = document.getElementById('export')
 const exportParameters = document.getElementById('export-parameters')
 const customParameters = document.getElementById('custom-parameters')
 
+let inited = false
+let saronTableTitle = "custom"
+const saronTable = new SaronTable('saron-table', 
+	tableChanged, ratesChanged, dateSelected).init()
+
 let maxDate = new Date()
 let minDate = maxDate
-let saronTableTitle = "custom"
 let exportChooser = new ExportChooser('export-chooser', exportChooserChanged)
 
 const importChooser = jSuites.dropdown(document.getElementById('import-chooser'), {
@@ -46,11 +49,14 @@ const importChooser = jSuites.dropdown(document.getElementById('import-chooser')
 	width: '100px'
 })
 
+
 const editorHistoryChooser = jSuites.dropdown(document.getElementById('editor-history-chooser'), {
 	data: [],
 	onchange: importDirect,
 	width: '250px'
 })
+
+inited = true
 
 function updateEditorHistoryChooserData(metaKey) {
 	const data = new Array()
@@ -74,10 +80,23 @@ function initInputs() {
 	exportParameters.style.display = "none"
 }
 
+function tableChanged(saronTable) {
+	if(inited) {
+		const itemInfo = EH.addItemToHistory(saronTableTitle, 
+			saronTable.getValidTableDataAsJson())
+		//updateEditorHistoryChooserData(itemInfo.metaKey)
+		ratesChanged(saronTable.jexcel)
+	}
+}
+
+function dateSelected(isoDate) {
+	RateGraph.annotatePoint(isoDate)
+}
+
 function ratesChanged(saronTable) {
 	//console.log("Rates changed")
 	//const jexcel = instance.jexcel?instance.jexcel:instance
-	const data = saronTable.getData()
+	const data = saronTable.jexcel.getData()
 
 	setTimeout(function() {
 		RateGraph.update(data)
@@ -99,8 +118,6 @@ function ratesChanged(saronTable) {
 		exportParameters.style.display = "none"
 	}
 }
-
-const saronTable = new SaronTable('saron-table', ratesChanged)
 
 async function postJson(url, requestData) {
 	try {
@@ -250,7 +267,7 @@ function readSaronFile(file) {
 			editorHistoryChooser.setValue("")
 			storeResults(reader.result)
 			saronTableTitle = file.name
-			tableChanged()
+			tableChanged(saronTable)
 			Spinner.close()
 		}
 	} catch(error) {
@@ -265,7 +282,7 @@ function importDirect(data) {
 		data = EH.getItemData(metaKey)
 		saronTableTitle = EH.getItemInfo(metaKey).title
 	} else saronTableTitle = "custom"
-	saronTable.setData(JSON.parse(data))
+	if(saronTable) saronTable.setData(JSON.parse(data))
 }
 
 async function importFile() {
@@ -286,7 +303,7 @@ async function importFile() {
 		editorHistoryChooser.setValue("")
 		storeResults(data)
 		saronTableTitle = file
-		tableChanged()
+		tableChanged(saronTable)
 	}
 }
 
@@ -326,4 +343,3 @@ document.addEventListener("keydown", function keyListener(e) {
 
 initInputs()
 FileDropper.enableFileDrop("dropzone", "dragging", readSaronFile)
-
