@@ -8,6 +8,8 @@ function create() {
 	function click(a,b,c,d,e,f) { 
 		if(typeof pointClicked === 'function') {
 			const i = c.dataPointIndex
+			//chart.zoomX(0,0)
+			//chart.resetSeries (true, true)
 			pointClicked(DateUtils.isoDate(new Date(chart.data.twoDSeriesX[i])), chart.data.twoDSeries[i])
 		}
 	}
@@ -44,6 +46,10 @@ function create() {
 		},
 		markers: {
 			size: 0,
+			hover: {
+				size: 6,
+				sizeOffset: 3
+			}
 			//colors: ['#FFFFFF', '#FFFFFF', '#FFFFFF']
 		},
 		title: {
@@ -107,6 +113,21 @@ function create() {
 				offsetX: 200,
 				offsetY: 0,
 			},
+		},
+		selection: {
+			enabled: false,
+			type: 'x',
+
+			stroke: {
+			  width: 0,
+			//   dashArray: 3,
+			//   color: '#24292e',
+			//   opacity: 0.4
+			},
+			// xaxis: {
+			// 	min: 5*24*60*60*1000,
+			// 	max: undefined
+			// },
 		},
 		theme: {
 			palette: 'palette3'
