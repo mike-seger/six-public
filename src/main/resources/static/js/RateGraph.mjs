@@ -11,12 +11,19 @@ function create() {
 			stacked: false,
 			height: 300,
 			zoom: {
+				// type: 'xy',
 				type: 'x',
 				enabled: true,
 				autoScaleYaxis: true
 			},
 			toolbar: {
 				autoSelected: 'zoom'
+			}
+		},
+		grid: {
+			padding: {
+				left: 8,
+				right: 36
 			}
 		},
 		//colors:['#FFFFFF', '#FFFFFF', '#FFFFFF'],
