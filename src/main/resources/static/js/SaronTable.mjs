@@ -4,6 +4,7 @@ export class SaronTable {
         this.tableChanged = tableChanged
         this.tableLoaded = tableLoaded
         this.dateSelected = dateSelected
+        this.selectedColumn = 0
     }
 
     init() {
@@ -41,6 +42,12 @@ export class SaronTable {
             if(py === uy) {
                 const isoDate = el.jexcel.getValueFromCoords(0, py)
                 self.dateSelected(isoDate)
+            } else if(py == 0 && px === ux) {
+                const length = self.saronTableElement.jexcel.getData().length
+                if(uy + 1 == length) {
+                    self.selectedColumn = px
+                    console.log(length, px, py, ux, uy)
+                }
             }
         }
     
@@ -72,6 +79,55 @@ export class SaronTable {
                 //ratesChanged(instance)
                 jexcel.current.ignoreEvents = false
             }
+        }
+
+        function sort(direction) {
+            return function(a, b) {
+                let valueA = a[1]
+                let valueB = b[1]
+                if(self.selectedColumn === 1) {
+                    valueA = valueA === ''? '' : Number(valueA)
+                    valueB = valueB === ''? '' : Number(valueB)
+                }
+                let result = (valueA === '' && valueB !== '') ?
+                    1 : (valueA !== '' && valueB === '') ?
+                        -1 : (valueA > valueB) ?
+                            1 : (valueA < valueB) ?
+                                -1 : 0
+                if (! direction) return result
+                else return -result
+            }
+        }
+
+        function contextMenu(obj, x, y, e, items, section) {
+            let newItems = []
+
+            if (obj.options.allowInsertRow == true) {
+                newItems.push({
+                    title: T('Insert new rows'),
+                    onclick: function() {
+                        let numOfRows = 1
+                        let rowNum = parseInt(y)
+                        let selectedRows = obj.getSelectedRows(true)
+                        if(selectedRows) {
+                            numOfRows = selectedRows.length
+                            rowNum = Math.min.apply(Math, selectedRows)
+                        }
+                        obj.insertRow(numOfRows, rowNum, 1)
+                    }
+                })
+            }
+
+            if (obj.options.allowDeleteRow == true) {
+                newItems.push({
+                    title: T('Delete selected rows'),
+                    onclick: function() {
+                        obj.deleteRow(obj.getSelectedRows().length ? undefined : parseInt(y))
+                    }
+                })
+            }
+
+            return newItems
         }
 
         this.saronTable = jspreadsheet(this.saronTableElement, {
@@ -110,36 +166,8 @@ export class SaronTable {
             onundo: jexcelChanged,
             onredo: jexcelChanged,
             onselection: cellsSelected,
-            contextMenu: function(obj, x, y, e, items, section) {
-                var items = []
-
-                if (obj.options.allowInsertRow == true) {
-                    items.push({
-                        title: T('Insert new rows'),
-                        onclick: function() {
-                            let numOfRows = 1
-                            let rowNum = parseInt(y)
-                            let selectedRows = obj.getSelectedRows(true)
-                            if(selectedRows) {
-                                numOfRows = selectedRows.length
-                                rowNum = Math.min.apply(Math, selectedRows)
-                            }
-                            obj.insertRow(numOfRows, rowNum, 1)
-                        }
-                    })
-                }
-            
-                if (obj.options.allowDeleteRow == true) {
-                    items.push({
-                        title: T('Delete selected rows'),
-                        onclick: function() {
-                            obj.deleteRow(obj.getSelectedRows().length ? undefined : parseInt(y))
-                        }
-                    })
-                }
-                
-                return items
-            },
+            contextMenu: contextMenu,
+            sorting: sort,
             width: '300px',
             rowResize: false,
             columnDrag: false,
