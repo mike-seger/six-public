@@ -1,8 +1,17 @@
 import { NumberUtils } from './utils/NumberUtils.mjs'
+import { DateUtils } from './utils/DateUtils.mjs'
 
-let chart = create() 
+let chart = create()
+let pointClicked = undefined
 
 function create() {
+	function click(a,b,c,d,e,f) { 
+		if(typeof pointClicked === 'function') {
+			const i = c.dataPointIndex
+			pointClicked(DateUtils.isoDate(new Date(chart.data.twoDSeriesX[i])), chart.data.twoDSeries[i])
+		}
+	}
+
 	var options = {
 		series: [],
 		chart: {
@@ -18,6 +27,9 @@ function create() {
 			},
 			toolbar: {
 				autoSelected: 'zoom'
+			},
+			events: {
+				click: click,
 			}
 		},
 		grid: {
@@ -66,16 +78,40 @@ function create() {
 			type: 'datetime',
 		},
 		tooltip: {
+			//enabled: false,
 			shared: false,
+			marker: {
+				show: true,
+			},
+			x: {
+				show: true,
+				formatter: function(val) {
+					const date = new Date(val)
+					return DateUtils.isoDate(date)+": "+(""+date).replace(/.{8}:.*/,"")
+				}
+			},
+			// y: {
+			// 	show: true,
+			// },
 			y: {
 				formatter: function(val) {
-					return NumberUtils.formattedRound(Number(val), 3)
-				}
-			}
+					return NumberUtils.formattedRound(Number(val), 6)
+				},
+				title: {
+					formatter: (seriesName) => 'Rate',
+				},
+			},
+			fixed: {
+				enabled: true,
+				position: 'topCenter',
+				offsetX: 200,
+				offsetY: 0,
+			},
 		},
 		theme: {
 			palette: 'palette3'
-		}
+		},
+
 	}
 
 	let chart = new ApexCharts(document.querySelector("#rate-display"), options)
@@ -106,17 +142,25 @@ function update(data0) {
 	}])
 }
 
+function addKeyListener(keyListener) {
+	chart.el.addEventListener("keydown", keyListener)
+}
+
+function setPointClickCallback(callback) { pointClicked = callback }
+
 function annotatePoint(isoDate, timeoutMs = 3500) {
 	if(currentData) {
 		if(currentTimeoutId) clearTimeout(currentTimeoutId)
 		chart.clearAnnotations()
 		const x = new Date(isoDate).getTime()
 		const index = currentData.findIndex(dp => dp[0] == x)
-		if(index>=0) {
+		const xStart = chart.axes.w.globals.minX
+		const xEnd = chart.axes.w.globals.maxX
+		if(index>=0 && x>=xStart && x<=xEnd) {
 			const y = currentData[index][1]
-			const low = index > currentData.length/2
-			const position = low?'left':'right'
-			const textAnchor = low?'end':'start'
+			const low = ((x-xStart)*1.0/(xEnd-xStart))<0.5
+			const position = low?'right':'left'
+			const textAnchor = low?'start':'end'
 			chart.addPointAnnotation({ x: x, y: y, 
 				marker: {
 					size: 4,
@@ -139,7 +183,9 @@ function annotatePoint(isoDate, timeoutMs = 3500) {
 
 var RateGraph = {
 	update, 
-	annotatePoint
+	annotatePoint,
+	setPointClickCallback,
+	addKeyListener,
 }
 
 export { RateGraph }

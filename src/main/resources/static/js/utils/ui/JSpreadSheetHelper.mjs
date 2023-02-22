@@ -30,8 +30,24 @@ function findLastVisibleRowIndex(rows, container, partially, dTop, dBottom) {
 	return rows.length-1
 }
 
+function scrollToFirstRow(tableElement, rowData) {
+	const rowIndex = tableElement.jexcel.getData().findIndex(el => el[0]===rowData[0])
+	if(rowIndex>=0) {
+		scrollToRow(tableElement, rowIndex)
+	}
+}
+
+function scrollToRow(tableElement, rowIndex) {
+	const content = tableElement.jexcel.content
+	const tbody = tableElement.querySelector('tbody.draggable')
+	const allTrs = tbody.querySelectorAll("tr")
+	tableElement.jexcel.updateSelectionFromCoords(0, rowIndex, 0, rowIndex)
+	if(rowIndex<5) content.scrollTop = 0
+	else allTrs[Math.max(0, rowIndex-1)].scrollIntoView()
+}
+
 function pageUpDown(js, up) {
-	const content = js.el.querySelector('.jexcel_content')
+	const content = js.el.jexcel.content
 	const tbody = js.el.querySelector('tbody.draggable')
 	const allTrs = tbody.querySelectorAll("tr")
 	const dTop = allTrs.length<=0?0:allTrs[0].offsetTop
@@ -67,6 +83,6 @@ function pageUpDown(js, up) {
 	js.updateSelectionFromCoords(x, firstRowIndex, x, firstRowIndex)
 }
 
-let JSpreadSheetHelper = { pageUpDown }
+let JSpreadSheetHelper = { pageUpDown, scrollToFirstRow }
 
 export { JSpreadSheetHelper }

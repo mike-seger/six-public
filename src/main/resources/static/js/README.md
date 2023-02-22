@@ -23,3 +23,5 @@ node --prof-process isolate-0xnnnnnnnnn-v8.log > processed.txt
 # apex charts
 - https://apexcharts.com/
 - https://apexcharts.com/javascript-chart-demos/dashboards/dark/
+- https://apexcharts.com/graph-maker/
+- https://apexcharts.com/javascript-chart-demos/area-charts/github-style/

@@ -114,6 +114,10 @@ function ratesChanged(saronTable) {
 	}
 }
 
+function pointClicked(x, y) {
+	JSpreadSheetHelper.scrollToFirstRow(saronTable.saronTableElement, [x,y])
+}
+
 async function postJson(url, requestData) {
 	try {
 		const response = await fetch(url, { 
@@ -338,3 +342,16 @@ document.addEventListener("keydown", function keyListener(e) {
 
 initInputs()
 FileDropper.enableFileDrop("dropzone", "dragging", readSaronFile)
+RateGraph.setPointClickCallback(pointClicked)
+RateGraph.addKeyListener((e) =>{
+	if(e.key == 'PageDown' || e.key == 'PageUp' 
+		|| e.key == 'ArrowUp' || e.key == 'ArrowDown') {
+			saronTable.saronTableElement.focus()
+			if(e.key == 'PageDown' || e.key == 'PageUp')
+				JSpreadSheetHelper.pageUpDown(jexcel.current, e.key == 'PageUp')
+			else
+				saronTable.saronTableElement.dispatchEvent(
+					new KeyboardEvent('keydown', {'key': e.key}));
+		return false
+	}
+})
