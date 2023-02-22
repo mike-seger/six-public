@@ -6,6 +6,7 @@ function create() {
 	var options = {
 		series: [],
 		chart: {
+			//foreColor: '#ccc',
 			type: 'area',
 			stacked: false,
 			height: 300,
@@ -18,11 +19,13 @@ function create() {
 				autoSelected: 'zoom'
 			}
 		},
+		//colors:['#FFFFFF', '#FFFFFF', '#FFFFFF'],
 		dataLabels: {
-			enabled: false
+			enabled: false,
 		},
 		markers: {
 			size: 0,
+			//colors: ['#FFFFFF', '#FFFFFF', '#FFFFFF']
 		},
 		title: {
 			text: 'SARON Rates',

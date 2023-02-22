@@ -44,10 +44,7 @@ export class SaronTable {
                 self.dateSelected(isoDate)
             } else if(py == 0 && px === ux) {
                 const length = self.saronTableElement.jexcel.getData().length
-                if(uy + 1 == length) {
-                    self.selectedColumn = px
-                    console.log(length, px, py, ux, uy)
-                }
+                if(uy + 1 == length) self.selectedColumn = px
             }
         }
     

@@ -135,6 +135,7 @@ a:active {
 
 #rate-display {
 	background-color: white;
+	/* background-color: black; */
 	width: calc(100% - 60px) !important;
 	height: 250px;
 	min-height: 299px !important;
