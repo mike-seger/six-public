@@ -52,8 +52,10 @@ function compundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 				else compoundRates.push(compoundRate(rateMap, sd, endDate, false))            
 			}
 		)
-	else compoundRates.push(compoundRate(rateMap, startDate, endDate));
+	else compoundRates.push(compoundRate(rateMap, startDate, endDate))
+	console.log(`Sort ${compoundRates.length} rates`)
 	compoundRates.sort((a, b) => (a.startDate+a.endDate).localeCompare(b.startDate+b.endDate))
+	console.log(`${compoundRates.length} rates calculated`)
 	return compoundRates
 }
 

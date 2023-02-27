@@ -1,5 +1,5 @@
 export class SaronCompoundDownloader {
-    download(rawData, parse) {
+    download(rawData, parse, startDate, endDate) {
         let procData = null
         if(rawData != null && parse) {
             //console.log(response)
@@ -16,12 +16,11 @@ export class SaronCompoundDownloader {
             const dlLink = document.createElement('a')
             dlLink.href = 'data:'+mimetype+';charset=utf-8,' + encodeURI(result)
             dlLink.target = '_blank'
-            dlLink.download = 'saron-compound-'+startdate.value+'_'+endDate.value+'_'+ timeStamp +'.csv'
+            dlLink.download = 'saron-compound-'+startDate+'_'+endDate+'_'+ timeStamp +'.csv'
             dlLink.click()
             dlLink.remove()
         }
 
         console.timeEnd('Execution Time')
-        Spinner.close()
     }
 }

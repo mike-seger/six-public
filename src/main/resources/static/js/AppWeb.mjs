@@ -215,12 +215,14 @@ async function downloadSaronCompoundFile() {
 				try {
 					if(e.data.type === 'saronCalculator') {
 						if(! e.data.error)
-							SaronCompoundDownloader.download(e.data.procData, e.data.parse)
+							new SaronCompoundDownloader().download(
+								e.data.procData, e.data.parse, startDate.value, endDate.value)
 						else handleError(e.data.error)
 					} else handleError("Invalid worker response: "+e.data)
 				} catch(err) { handleError("Unexpected error occurred: "+err) }
 				saronCalculator.terminate()
 				saronCalculator = null
+				Spinner.close()
 			}
 
 			if(saronCalculator == null) {
@@ -236,7 +238,8 @@ async function downloadSaronCompoundFile() {
 			} else throw ("Error starting a second SaronCalculator")
 		} else {
 			postJson("api/v1", JSON.stringify(request))
-				.then((procData) => SaronCompoundDownloader.download(procData, true))
+				.then((procData) => new SaronCompoundDownloader().download(
+					procData, true, startDate.value, endDate.value))
 				.catch((err) => handleError(err))
 			}
 	} catch(err) { handleError(err) }
