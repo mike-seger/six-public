@@ -297,7 +297,7 @@ async function importFile() {
 	Spinner.open()
 	importChooser.setValue("")
 	if(mode === "SaronRatesUpload") {
-		FileDialog.open(".csv, .tsv, .txt", () => Spinner.close())
+		new FileDialog().open(".csv, .tsv, .txt", (file) => readSaronFile(file), () => Spinner.close())
 	} else if(mode.startsWith("Local ")) {
 		const file = mode.substring("Local ".length)
 		const data = await importResource("./data/"+file)

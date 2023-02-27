@@ -185,6 +185,10 @@ export class SaronTable {
         if(rowData.indexOf("")<0) this.tableChanged(this)
     }
 
+    simulateKey() {
+
+    }
+    
     setData(data) { return this.saronTableElement.jexcel.setData(data) }
 
     getData() { return this.saronTableElement.jexcel.getData() }

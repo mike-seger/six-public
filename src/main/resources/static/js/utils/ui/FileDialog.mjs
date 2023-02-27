@@ -1,12 +1,12 @@
-class FileDialog {
-    open(acceptedFilePatterns, closeFunction = () => {}) {
+export class FileDialog {
+    open(acceptedFilePatterns, readFile = (file) => { console.log(`Default file handler: ${file.name}`)}, closeFunction = () => {}) {
         let input = document.createElement('input')
         let opening = false
         input.type = 'file'
         input.accept = acceptedFilePatterns
         input.onchange = function(event) {
             opening = true
-            readSaronFile(input.files[0])
+            readFile(input.files[0])
         }
 
         function addDialogClosedListener(input, callback) {
@@ -39,5 +39,3 @@ class FileDialog {
         input.click()
     }
 }
-
-export { FileDialog } 
