@@ -25,3 +25,8 @@ node --prof-process isolate-0xnnnnnnnnn-v8.log > processed.txt
 - https://apexcharts.com/javascript-chart-demos/dashboards/dark/
 - https://apexcharts.com/graph-maker/
 - https://apexcharts.com/javascript-chart-demos/area-charts/github-style/
+
+# alternative charts
+- https://dygraphs.com/
+- https://pixlcore.com/software/pixl-chart/demos/single-layer.html
+- http://mcaule.github.io/d3-timeseries/
