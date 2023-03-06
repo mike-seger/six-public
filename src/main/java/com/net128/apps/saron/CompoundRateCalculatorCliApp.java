@@ -61,7 +61,7 @@ public class CompoundRateCalculatorCliApp {
 	private static Reader urlReader(String url) throws IOException, NoSuchAlgorithmException {
 		MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 		messageDigest.update(url.getBytes());
-		String stringHash = new String(Base64.getEncoder().encode(messageDigest.digest())).replace("/", "_").replace("=", "_");;
+		String stringHash = new String(Base64.getEncoder().encode(messageDigest.digest())).replace("/", "_").replace("=", "_");
 		File cachedDataFile = new File(System.getProperty("java.io.tmpdir"), CompoundRateCalculatorCliApp.class.getSimpleName()+"-"+stringHash+"-rates.txt");
 		if(cachedDataFile.exists()) {
 			FileTime creationTime = (FileTime) Files.getAttribute(cachedDataFile.toPath(), "creationTime");
@@ -72,7 +72,7 @@ public class CompoundRateCalculatorCliApp {
 		return new FileReader(cachedDataFile);
 	}
 
-	private static void cacheUrl(String url, File file) throws IOException, NoSuchAlgorithmException {
+	private static void cacheUrl(String url, File file) throws IOException {
 		String data = new Scanner(new URL(url).openStream(), "UTF-8").useDelimiter("\\A").next();
 		if(data.startsWith("ISIN;CH0049613687;")) {
 			String csv = data.replaceAll("(?m)^ISIN;CH0049613687;.*$", "")
