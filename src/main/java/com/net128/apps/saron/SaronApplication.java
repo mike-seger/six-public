@@ -9,6 +9,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 
 @SpringBootApplication
@@ -24,8 +25,11 @@ public class SaronApplication {
 
 	@EventListener({ApplicationReadyEvent.class})
 	void applicationReadyEvent() {
-		System.out.println("Application started ... launching browser now");
-		browse("http://localhost:8080");
+		System.out.println("Application started");
+		if ((getClass().getResource("/application.yaml")+"").contains(".jar!/")) {
+			System.out.println("Launching browser now");
+			browse("http://localhost:8080");
+		}
 	}
 
 	public static void browse(String url) {
