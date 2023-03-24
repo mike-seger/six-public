@@ -54,7 +54,8 @@ export class SaronTable {
         }
     
         function cellChanged(el, cell, x, y, value) {
-            if(value) {
+            if(value && el.jexcel) {
+                const jexcel = el.jexcel
                 jexcel.ignoreEvents = true
                 const name = jexcel.getColumnNameFromId([x,y])
                 value = (value+"").replace(/[^\d.-]/gm, "")
