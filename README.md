@@ -18,5 +18,6 @@ java -jar build/libs/saron-compound-public-0.0.1-SNAPSHOT.jar -help
 CompoundRateCalculatorCliApp [-all] [-allStartDates] [-rational] <rates-file> <startdate> <enddate>
 ```
 
+
 # Demo
 https://mike-seger.github.io/saron-compound-public/src/main/resources/static/
