@@ -1,3 +1,5 @@
+import { NumberUtils } from './utils/NumberUtils.mjs'
+
 export class SaronTable {
     constructor(tableElementId, tableChanged, tableLoaded, dateSelected) {
         this.saronTableElement = document.getElementById(tableElementId)
@@ -49,7 +51,7 @@ export class SaronTable {
         }
     
         function onAfterChanges(instance, cells) {
-            cells.map(cell => this.cellChanged(instance, cell, cell.x, cell.y, cell.newValue))
+            //cells.map(cell => self.cellChanged(instance, cell, cell.x, cell.y, cell.newValue))
             self.tableChanged(self)
         }
     
@@ -57,25 +59,25 @@ export class SaronTable {
             if(value && el.jexcel) {
                 const jexcel = el.jexcel
                 jexcel.ignoreEvents = true
-                const name = jexcel.getColumnNameFromId([x,y])
+                const name = jspreadsheet.helpers.getColumnNameFromCoords(x,y)
                 value = (value+"").replace(/[^\d.-]/gm, "")
                 if (x==0 && value.match(/^[12]...-..-...*/)) {
                     jexcel.setValue(name, value.substring(0,10))
-                    this.rowChanged(jexcel.getRowData(y))
+                    self.rowChanged(jexcel.getRowData(y))
                 } else if(x==1) {
                     if(value.startsWith(".") || value.startsWith("-."))
                         value = value.replace(".", "0.")
                     if(value.match(/^-*(\d+)(,\d{0,}|\.\d{1,})?$/)) {
                         jexcel.setValue(name, NumberUtils.formattedRound(Number(value), 6))
-                        this.rowChanged(jexcel.getRowData(y))
+                        self.rowChanged(jexcel.getRowData(y))
                     }
                 } else {
                     console.log(`Invalid value at (${x}/${y}) ${value}`)
                     value = ""
                 }
-                this.tableChanged(self)
+               // this.tableChanged(self)
                 //ratesChanged(instance)
-                jexcel.current.ignoreEvents = false
+                jexcel.ignoreEvents = false
             }
         }
 
