@@ -1,8 +1,11 @@
 <html>
 	<head>
-		<script src="https://jsuites.net/v4/jsuites.js"></script>
-		<script src="https://jsuites.net/v4/jsuites.webcomponents.js"></script>
-		<script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+<!--		<script src="https://jsuites.net/v4/jsuites.js"></script>-->
+<!--		<script src="https://jsuites.net/v4/jsuites.webcomponents.js"></script>-->
+<!--		<script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>-->
+		<script src="./js/jsuites/jsuites.js"></script>
+		<script src="./js/jsuites/jsuites.webcomponents.js"></script>
+		<script src="./js/jsuites/jexcel.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
 		<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
@@ -10,8 +13,10 @@
 		<link rel="icon" href="favicon.svg" type="image/svg+xml">
 		<link rel="manifest" href="manifest.webmanifest">
 
-		<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
-		<link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+<!--		<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />-->
+<!--		<link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />-->
+		<link rel="stylesheet" href="./js/jsuites/jsuites.css" type="text/css" />
+		<link rel="stylesheet" href="./js/jsuites/jexcel.css" type="text/css" />
 		<link rel="stylesheet" href="css/Jexcel-Custom.css" type="text/css" />
 		<link rel="stylesheet" href="css/Spinner.css" type="text/css" />
 		<link rel="stylesheet" href="css/AppWeb.css" type="text/css" />
@@ -49,13 +54,19 @@
 		<div id="serverText"></div>
 	</jsuites-modal>
 	<jsuites-modal id="saronInfoMessage" title="Saron Information " 
-		closed="true" width="320" height="200">
+		closed="true" width="380" height="280">
 		<div id="link-table">
-			SARON rate sources<br />
+			SNB<br />
+			<a href="https://data.snb.ch/api/cube/zimoma/data/json/de?dimSel=D0(SARON,SOFR,TONA,SONIA,ESTR)&fromDate=1990-08&toDate=2024-08"
+			   target="_blank">SARON,SOFR,TONA,SONIA,ESTR (JSON)</a>
+			<br /><br />
+			Other SARON rate sources<br />
 			<a href="https://www.six-group.com/exchanges/downloads/indexdata/hsrron.csv"
 			>SARON rates 1999 - present (SIX)</a>
 			<br /><br />
 			More information<br />
+			<a href="https://data.snb.ch/de/topics/snb/cube/snboffzisa" target="_blank"
+			>SNB: Offizielle Zinssätze</a><br />
 			<a href="https://www.six-group.com/exchanges/indices/data_centre/swiss_reference_rates/compound_rates_en.html"
 				target="_blank"
 			>SARON Compound Rates</a><br />
@@ -66,6 +77,18 @@
 	</jsuites-modal>
 
 	<script src="js/AppWeb.mjs" type="module"></script>
+	<script src="js/SNB-rates-fetcher.mjs" type="module"></script>
 
+	<script type="module">
+		//import { filteredTimeSeriesData, fetchTimeSeriesData, convertToTSV } from './js/SNB-rates-fetcher.mjs'
+
+		//const url = 'https://data.snb.ch/api/cube/zimoma/data/json/de?dimSel=D0(SARON,SOFR,TONA,SONIA,ESTR)&fromDate=1990-08&toDate=2024-08'; // Replace with your actual URL
+		//const url = 'https://data.snb.ch/api/cube/zirepo/data/json/en'
+		//const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssätze.json')
+		//const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssätze-2024.json')
+		//const series=filteredTimeSeriesData(timeSeriesData,
+		//	'2024-01-01', '2024-12-31', 'EPB@SNB\\.zirepo\\{H0\\}')
+		//console.log(series)
+	</script>
 </body>
 </html>

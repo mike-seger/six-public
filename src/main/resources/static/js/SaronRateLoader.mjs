@@ -29,13 +29,13 @@ function loadRates(data) {
 		let sample = data.substring(Math.max(0, data.indexOf("\n"))).trim()
 		sample = sample.substring(0, Math.max(0,sample.indexOf("\n"))).trim()
 		if(!sample.match(/^[12][0-9]{3}-[0-9]{2}-[0-9]{2}.-*[0-9]+\.[0-9]{6}$/))
-			throw (`Data sanple (${sample}) doesn't match the expected format`)
+			throw (`Data sample (${sample}) doesn't match the expected format`)
 		objArray = tsvParse(data)
 	}
 	return objArray
 }
 
-function tsvParse(data) {
+export function tsvParse(data) {
 	if(!data.startsWith("Date\tSaronRate\n")) 
 		throw ("Data must have a header line with:\n'Date\tSaronRate'")
 	return data.replaceAll("\r", "").split("\n")
@@ -59,7 +59,7 @@ function fillRates(csv) {
 	
 		if(prevEntry != null) {
 			const missingDays = DU.diffDays(prevEntry.date, curDate) - 1
-			if(missingDays>4) 
+			if(missingDays>6)
 				throw (`Too many missing days (${missingDays}) between:\n
 					${DU.isoDate(prevEntry.date)} and ${DU.isoDate(curDate)}`)
 			if(missingDays>0) {

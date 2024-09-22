@@ -10,7 +10,7 @@ import { ExportChooser } from './ExportChooser.mjs'
 import { SaronCompoundDownloader } from './SaronCompoundDownloader.mjs'
 import { SaronTable } from './SaronTable.mjs'
 import { stripHtmlTags } from './utils/HtmlUtils.mjs'
-
+import { filteredTimeSeriesData, fetchTimeSeriesData, convertToTSV } from './SNB-rates-fetcher.mjs'
 
 let saronCalculator = null
 
@@ -41,15 +41,22 @@ const importChooser = jSuites.dropdown(document.getElementById('import-chooser')
 	data: [
 		{ value: "SaronRatesUpload", text: "File..." },
 		{ value: "empty", text: "Empty" },
-		{ value: "Local saron-2022.tsv", text: "2022" },
+        { value: "SNB 2024-2024", text: "2024" },
+        { value: "SNB 2023-2023", text: "2023" },
+        { value: "SNB 2022-2023", text: "2022" },
 		{ value: "Local saron-2021.tsv", text: "2021" },
 		{ value: "Local saron-2020.tsv", text: "2020" },
 		{ value: "Local saron-2019.tsv", text: "2019" },
+        { value: "SNB 2023-2024", text: "2023-2024" },
+        { value: "SNB 2022-2024", text: "2022-2024" },
+        { value: "SNB 2021-2024", text: "2021-2024" },
+        { value: "SNB 2019-2024", text: "2019-2024" },
 	],
 	onchange: importFile,
 	width: '100px'
 })
 
+const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssätze.json')
 
 const editorHistoryChooser = jSuites.dropdown(document.getElementById('editor-history-chooser'), {
 	data: [],
@@ -301,6 +308,16 @@ async function importFile() {
 	importChooser.setValue("")
 	if(mode === "SaronRatesUpload") {
 		new FileDialog().open(".csv, .tsv, .txt", (file) => readSaronFile(file), () => Spinner.close())
+	} else if(mode.startsWith("SNB ")) {
+		//const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssätze.json')
+		const range = mode.substring("SNB ".length)
+		const limits = range.split("-")
+		const series=filteredTimeSeriesData(timeSeriesData,
+			`${limits[0]}-01-01`, `${parseInt(limits[1])+1}-01-01`, 'EPB@SNB\\.zirepo\\{H0\\}')
+		const data=convertToTSV(series)
+        storeResults(data)
+        saronTableTitle = range
+        tableChanged(saronTable)
 	} else if(mode.startsWith("Local ")) {
 		const file = mode.substring("Local ".length)
 		const data = await importResource("./data/"+file)

@@ -27,8 +27,8 @@ function compoundRate(rateMap, startDate, endDate, validateRateMap = true) {
 	return { startDate: startDate, endDate: endDate, value: NumberUtils.formattedRound(result, 4) }
 }
 
-function compundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
-	console.log(rateMap, startDate, endDate, all, allStartDates)
+function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
+	//console.log(rateMap, startDate, endDate, all, allStartDates)
 	const compoundRates = []
 	const dates = rateMap.keys()
 	doValidateRateMap(rateMap, startDate, endDate)
@@ -44,7 +44,7 @@ function compundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 			offset => {
 				const sd = DU.plusDays(startDate, offset)
 				const ed = DU.plusDays(sd, 1)
-				console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + DU.diffDays(startDate, sd) + " / " + compoundRates.length);
+				//console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + DU.diffDays(startDate, sd) + " / " + compoundRates.length);
 				if(allStartDates)
 					NumberUtils.range(0, DU.diffDays(ed, endDate)+1).forEach(edOffset =>
 						compoundRates.push(compoundRate(rateMap, sd, DU.plusDays(ed, edOffset, false))
@@ -63,7 +63,7 @@ if(typeof importScripts === 'function') {
 	self.addEventListener('message', function(e) {
 		let p = e.data
 		try {
-			const procData = compundRateSeries(p.rateMap, p.startDate, p.endDate, p.all, p.allStartDates)
+			const procData = compoundRateSeries(p.rateMap, p.startDate, p.endDate, p.all, p.allStartDates)
 			postMessage({ type: 'saronCalculator', procData: procData, parse: false })
 		} catch(err) {
 			postMessage({ type: 'saronCalculator',  error: err })
@@ -71,4 +71,4 @@ if(typeof importScripts === 'function') {
 	}, false)
 }
 
-export { compoundRate, compundRateSeries }
+export { compoundRate, compoundRateSeries }

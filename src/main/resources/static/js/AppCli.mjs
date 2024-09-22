@@ -1,8 +1,9 @@
 import fs from 'fs'
 import os from 'os'
 
-import { compundRateSeries } from './SaronCompoundCalculator.mjs'
-import { loadRates, fillRates } from './SaronRateLoader.mjs'
+import { compoundRateSeries } from './SaronCompoundCalculator.mjs'
+import { filteredTimeSeriesData, convertToTSV } from './SNB-rates-fetcher.mjs'
+import { loadRates, fillRates, tsvParse } from './SaronRateLoader.mjs'
 import { download } from './utils/FileDownloader.mjs'
 
 if (process.argv.length < 4) {
@@ -10,24 +11,14 @@ if (process.argv.length < 4) {
 	process.exit(1)
 }
 
-async function loadRatesData() {
-	const ratesFilePath = os.tmpdir()+"/hsrron.csv"
-	const sixRatesUrl = "https://www.six-group.com/exchanges/downloads/indexdata/hsrron.csv"
-
+async function loadRatesData(ratesFilePath) {
 	try {
 		console.error("Checking rates file: "+ratesFilePath)
-		if(fs.existsSync(ratesFilePath)) {
-			const stats = fs.statSync(ratesFilePath)
-			if(stats.ctime < new Date().setUTCHours(0, 0, 0, 0)) {
-				console.error("Rates file is outdated. Re-downloading")
-				fs.unlinkSync(ratesFilePath)
-				await download(sixRatesUrl, ratesFilePath)
-			}
-		} else {
-			await download(sixRatesUrl, ratesFilePath)
+		if(!fs.existsSync(ratesFilePath)) {
+			throw("Could not find: "+ratesFilePath)
 		}
 		console.error("Using rates file: "+ratesFilePath)
-		return fs.readFileSync(ratesFilePath, 'utf8')
+		return JSON.parse(fs.readFileSync(ratesFilePath, 'utf8'))
 	} catch (error) {
 		throw(error)
 	}
@@ -38,7 +29,17 @@ const endDate = process.argv[3]
 const all = process.argv.length > 4?process.argv[4]==='true' : false
 const allStartDates = process.argv.length > 5?process.argv[5]=='true' : false
 
-const csv = loadRates(await loadRatesData())
+const timeSeriesData = await loadRatesData('../data/snb-zinssätze.json')
+const series=filteredTimeSeriesData(timeSeriesData, "1900-01-01", "9999-12-31", 'EPB@SNB\\.zirepo\\{H0\\}')
+const csv = tsvParse(convertToTSV(series))
+
 const rateMap = fillRates(csv)
-const result = compundRateSeries(rateMap, startDate, endDate, all, allStartDates)
-console.log(JSON.stringify(result).replaceAll(",{","\n,{"))
+const result = compoundRateSeries(rateMap, startDate, endDate, all, allStartDates)
+const resultStr = JSON.stringify(result).replaceAll(",{","\n,{")
+    .replaceAll(',{"startDate":"', "")
+    .replaceAll('","endDate":"', ",")
+    .replaceAll('","value":"', ",")
+    .replaceAll('"}', "")
+    .replaceAll(']', "")
+
+console.log('startDate,endDate,value'+resultStr)
