@@ -1,4 +1,4 @@
-import { DateUtils as DU } from './utils/DateUtils.mjs'
+import { getPrevPeriod } from './utils/ExtDateUtils.mjs'
 
 class ExportChooser {
     constructor(elementId, exportChooserChanged) {
@@ -18,9 +18,9 @@ class ExportChooser {
 
 function createData(minDate, maxDate) {
 	let date = maxDate
-	const prevQuarter = DU.getPrevPeriod(date, 3)
-	const prevSemester = DU.getPrevPeriod(date, 6)
-	const prevYear = DU.getPrevPeriod(date, 12)
+	const prevQuarter = getPrevPeriod(date, 3)
+	const prevSemester = getPrevPeriod(date, 6)
+	const prevYear = getPrevPeriod(date, 12)
 	const semQuarter = (prevSemester.n-1)*2
 	const data = [
 		{ group:'Predefined Ranges', value: `${prevQuarter.start} ${prevQuarter.end}`, 

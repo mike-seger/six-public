@@ -1,4 +1,4 @@
-function range(start, end) {
+export function range(start, end) {
 	const sign = start > end ? -1 : 1;
 	return Array.from(
 		{ length: Math.abs(end - start) },
@@ -16,7 +16,7 @@ function round(n, decimals) {
 	return +(Math.round(n + "e+" + decimals)  + "e-" + decimals)	
 }
 
-function formattedRound(n, decimals) {
+export function formattedRound(n, decimals) {
     if(n===undefined) return ''
 	let s = round(round(n, decimals+5),decimals)+""
 	if(s.indexOf(".")<0) s+=".0"

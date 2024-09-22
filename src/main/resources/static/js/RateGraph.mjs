@@ -1,5 +1,5 @@
 import { NumberUtils } from './utils/NumberUtils.mjs'
-import { DateUtils } from './utils/DateUtils.mjs'
+import { isoDate } from './utils/DateUtils.mjs'
 
 let chart = create()
 let pointClicked = undefined
@@ -10,7 +10,7 @@ function create() {
 			const i = c.dataPointIndex
 			//chart.zoomX(0,0)
 			//chart.resetSeries (true, true)
-			pointClicked(DateUtils.isoDate(new Date(chart.data.twoDSeriesX[i])), chart.data.twoDSeries[i])
+			pointClicked(isoDate(new Date(chart.data.twoDSeriesX[i])), chart.data.twoDSeries[i])
 		}
 	}
 
@@ -93,7 +93,7 @@ function create() {
 				show: true,
 				formatter: function(val) {
 					const date = new Date(val)
-					return DateUtils.isoDate(date)+": "+(""+date).replace(/.{8}:.*/,"")
+					return isoDate(date)+": "+(""+date).replace(/.{8}:.*/,"")
 				}
 			},
 			// y: {

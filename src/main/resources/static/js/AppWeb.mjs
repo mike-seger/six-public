@@ -1,5 +1,5 @@
 import { loadRates, fillRates } from './SaronRateLoader.mjs'
-import { DateUtils as DU } from './utils/DateUtils.mjs'
+import { plusDays } from './utils/DateUtils.mjs'
 import { RateGraph } from './RateGraph.mjs'
 import { Spinner } from './utils/ui/Spinner.mjs'
 import { EditorHistory as EH } from './EditorHistory.mjs'
@@ -113,7 +113,7 @@ function ratesChanged(saronTable) {
 		const dates = validData.map(rate => rate[0])
 		dates.sort()
 		minDate = dates[0].substring(0,10)
-		maxDate = DU.plusDays(new Date(dates[dates.length-1].substring(0,10)), 1)
+		maxDate = plusDays(new Date(dates[dates.length-1].substring(0,10)), 1)
 		exportChooser.change(minDate, maxDate)
 		//exportChooserChanged(exportChooser)
 

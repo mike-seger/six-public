@@ -1,4 +1,6 @@
 import { NumberUtils } from './utils/NumberUtils.mjs'
+import { isoDate } from './utils/DateUtils.mjs'
+import { plusSwissWorkingDays } from './utils/ExtDateUtils.mjs'
 
 export class SaronTable {
     constructor(tableElementId, tableChanged, tableLoaded, dateSelected) {
@@ -22,18 +24,19 @@ export class SaronTable {
         }
     
         function rowInserted(instance, rowNumber, numOfRows, insertBefore) {
+            const jexcel = instance.jexcel
             jexcel.ignoreEvents = true
     
-            console.log(instance, jexcel.current.options.data.length, rowNumber, numOfRows, insertBefore)
+            console.log(instance, jexcel.options.data.length, rowNumber, numOfRows, insertBefore)
             let lastRow = jexcel.options.data.length-1
             let srcRow = rowNumber+numOfRows
-            const prevWorkingDate = DU.plusSwissWorkingDays(DU.isoDate(new Date()), -1)
+            const prevWorkingDate = plusSwissWorkingDays(isoDate(new Date()), -1)
             let srcDate = srcRow<=lastRow?jexcel.getRowData(srcRow)[0]:prevWorkingDate
             if(!srcDate.match(/^[12]...-..-..$/)) srcDate  = prevWorkingDate
             console.log("srcDate = "+srcDate)
             let newDate = srcDate
             for(let j=numOfRows-1;j>=0;j--) {
-                newDate = DU.plusSwissWorkingDays(newDate, 1)
+                newDate = plusSwissWorkingDays(newDate, 1)
                 jexcel.setRowData(rowNumber+j, [newDate, ""])
             }
     

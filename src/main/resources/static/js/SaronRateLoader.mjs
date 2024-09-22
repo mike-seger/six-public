@@ -1,4 +1,4 @@
-import { DateUtils as DU } from './utils/DateUtils.mjs'
+import { localDate, isoDate, diffDays, plusDays } from './utils/DateUtils.mjs'
 
 function loadRates(data) {
 	let objArray = null
@@ -52,29 +52,29 @@ function fillRates(csv) {
 	let prevEntry = null
 	csv.sort((a, b) => a.Date.localeCompare(b.Date))
 	csv.forEach((obj) => {
-		const curDate = DU.localDate(obj.Date)
+		const curDate = localDate(obj.Date)
 		const weekDay = curDate.getDay()
 		if(weekDay==0 || weekDay==6)
-			throw `Rates must be on business days: ${DU.isoDate(curDate)} is a ${weekDay==0?'Sunday':'Saturday'}`
+			throw `Rates must be on business days: ${isoDate(curDate)} is a ${weekDay==0?'Sunday':'Saturday'}`
 	
 		if(prevEntry != null) {
-			const missingDays = DU.diffDays(prevEntry.date, curDate) - 1
+			const missingDays = diffDays(prevEntry.date, curDate) - 1
 			if(missingDays>6)
 				throw (`Too many missing days (${missingDays}) between:\n
-					${DU.isoDate(prevEntry.date)} and ${DU.isoDate(curDate)}`)
+					${isoDate(prevEntry.date)} and ${isoDate(curDate)}`)
 			if(missingDays>0) {
 				prevEntry.rateWeight.weight = missingDays + 1
 				const rate = prevEntry.rateWeight.rate
 				let weight = missingDays
 				let offset = 1
 				do {
-					let fillDate = DU.plusDays(prevEntry.date, offset++)
+					let fillDate = plusDays(prevEntry.date, offset++)
 					map.set(fillDate, { rate: rate, weight: weight-- })
 				} while(offset<=missingDays)
 			}
 		}
 		const rateWeight = { rate: obj.SaronRate, weight: 1 }
-		map.set(DU.isoDate(curDate), rateWeight )
+		map.set(isoDate(curDate), rateWeight )
 		prevEntry = { date: curDate, rateWeight: rateWeight }
 	})
 
