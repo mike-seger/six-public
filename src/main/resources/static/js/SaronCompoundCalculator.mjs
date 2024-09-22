@@ -10,11 +10,12 @@ function doValidateRateMap(rateMap, startDate, endDate) {
 	}
 }
 
-function compoundRate(rateMap, startDate, endDate, validateRateMap = true) {
+function compoundRateSlow(rateMap, startDate, endDate) {
 	let date = startDate
 	let product = 1
 	while(date < endDate) {
 		let rateWeight = rateMap.get(date)
+		//console.error("rateWeightS", rateWeight, startDate, date, endDate)
 		let weight = rateWeight.weight
 		if(weight>1 && plusDays(date, weight) >= endDate)
 			weight = diffDays(date, endDate)
@@ -27,9 +28,31 @@ function compoundRate(rateMap, startDate, endDate, validateRateMap = true) {
 	return { startDate: startDate, endDate: endDate, value: formattedRound(result, 4) }
 }
 
+function compoundRate(rateArray, start, end, endDate) {
+	let i = start
+	let product = 1
+	while(i < end) {
+		const rateWeight = rateArray[i][1]
+		//console.error("rateWeight", rateWeight, start, i, end)
+		let weight = rateWeight.weight
+		if(weight>1 && i+weight >= end)
+			weight = end-i
+		i = i+weight
+		let factor = rateWeight.rate * weight/36000.0 + 1
+		product *= factor
+	}
+
+	const result = (product - 1) * 36000.0 / (end - start)
+	return { startDate: rateArray[start][0], endDate: endDate, value: formattedRound(result, 4) }
+}
+
 function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 	//console.log(rateMap, startDate, endDate, all, allStartDates)
 	const compoundRates = []
+	const rateArray = Array.from(
+        rateMap.entries().filter(([date, rate]) => date >= startDate && date <= endDate,
+        ([date, rate]) => ({ date, rate })))
+	//console.error(rateArray)
 	const dates = rateMap.keys()
 	doValidateRateMap(rateMap, startDate, endDate)
 	if(dates.length==0) throw new RuntimeException("No rates found")
@@ -46,9 +69,17 @@ function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 				const ed = plusDays(sd, 1)
 				//console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + diffDays(startDate, sd) + " / " + compoundRates.length);
 				if(allStartDates)
-					range(0, diffDays(ed, endDate)+1).forEach(edOffset =>
-						compoundRates.push(compoundRate(rateMap, sd, plusDays(ed, edOffset, false))
-					))
+					range(0, diffDays(ed, endDate)+1).forEach(edOffset => {
+							//const crSlow = compoundRateSlow(rateMap, sd, plusDays(ed, edOffset, false))
+							const cr = compoundRate(rateArray, offset, offset+edOffset+1, plusDays(ed, edOffset, false))
+                            //const cr = compoundRateSlow(rateMap, sd, plusDays(ed, edOffset, false))
+						    // const s1 = JSON.stringify(cr)
+						    // const s2 = JSON.stringify(crSlow)
+						    // if(s1 != s2)
+							// 	console.error(`   ${s1}\n!= ${s2}\n`)
+						    compoundRates.push(cr)
+                        }
+					)
 				else compoundRates.push(compoundRate(rateMap, sd, endDate, false))            
 			}
 		)

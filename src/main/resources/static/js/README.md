@@ -1,7 +1,7 @@
 # example call
 ```
 s=$(date +%s)
-node AppCli.mjs 2022-01-01 2022-12-31 true true | \
+node AppCli.mjs 2024-01-03 2024-08-16 true true | \
 	grep start|tr -d '"{}[]' |tr ":" ","|\
 	sed -e "s/^,//"|cut -d , -f2,4,6|\
 	tee /tmp/1 ; wc -l /tmp/1

@@ -34,7 +34,10 @@ const series=filteredTimeSeriesData(timeSeriesData, "1900-01-01", "9999-12-31", 
 const csv = tsvParse(convertToTSV(series))
 
 const rateMap = fillRates(csv)
+
+console.time('compoundRateSeries')
 const result = compoundRateSeries(rateMap, startDate, endDate, all, allStartDates)
+console.timeEnd('compoundRateSeries')
 const resultStr = JSON.stringify(result).replaceAll(",{","\n,{")
     .replaceAll('[{"startDate":"', "\n")
     .replaceAll(',{"startDate":"', "")
@@ -43,4 +46,4 @@ const resultStr = JSON.stringify(result).replaceAll(",{","\n,{")
     .replaceAll('"}', "")
     .replaceAll(']', "")
 
-console.log('startDate,endDate,value'+resultStr)
+//console.log('startDate,endDate,value'+resultStr)
