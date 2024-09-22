@@ -46,4 +46,4 @@ const resultStr = JSON.stringify(result).replaceAll(",{","\n,{")
     .replaceAll('"}', "")
     .replaceAll(']', "")
 
-//console.log('startDate,endDate,value'+resultStr)
+console.log('startDate,endDate,value'+resultStr)

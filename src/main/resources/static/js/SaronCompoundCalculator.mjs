@@ -67,23 +67,17 @@ function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 			offset => {
 				const sd = plusDays(startDate, offset)
 				const ed = plusDays(sd, 1)
-				//console.error("CR "+sd+"-"+ed+ " : "+endDate + " " + diffDays(startDate, sd) + " / " + compoundRates.length);
 				if(allStartDates)
 					range(0, diffDays(ed, endDate)+1).forEach(edOffset => {
-							//const crSlow = compoundRateSlow(rateMap, sd, plusDays(ed, edOffset, false))
-							const cr = compoundRate(rateArray, offset, offset+edOffset+1, plusDays(ed, edOffset, false))
-                            //const cr = compoundRateSlow(rateMap, sd, plusDays(ed, edOffset, false))
-						    // const s1 = JSON.stringify(cr)
-						    // const s2 = JSON.stringify(crSlow)
-						    // if(s1 != s2)
-							// 	console.error(`   ${s1}\n!= ${s2}\n`)
-						    compoundRates.push(cr)
-                        }
-					)
-				else compoundRates.push(compoundRate(rateMap, sd, endDate, false))            
+						const cr = compoundRate(rateArray, 
+							offset, offset+edOffset+1, plusDays(ed, edOffset))
+						compoundRates.push(cr)
+					})
+				else compoundRates.push(compoundRate(rateArray, 
+					offset, offset+1, plusDays(ed, 1)))            
 			}
 		)
-	else compoundRates.push(compoundRate(rateMap, startDate, endDate))
+	else compoundRates.push(compoundRate(rateMap, 0, diffDays(startDate, endDate), endDate))
 	console.error(`Sort ${compoundRates.length} rates`)
 	compoundRates.sort((a, b) => (a.startDate+a.endDate).localeCompare(b.startDate+b.endDate))
 	console.error(`${compoundRates.length} rates calculated`)
