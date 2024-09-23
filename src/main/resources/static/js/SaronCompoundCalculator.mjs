@@ -28,7 +28,7 @@ function compoundRateSlow(rateMap, startDate, endDate) {
 	return { startDate: startDate, endDate: endDate, value: formattedRound(result, 4) }
 }
 
-function compoundRate(rateArray, start, end, endDate) {
+function compoundRate(rateArray, start, end) {
 	let i = start
 	let product = 1
 	while(i < end) {
@@ -43,7 +43,7 @@ function compoundRate(rateArray, start, end, endDate) {
 	}
 
 	const result = (product - 1) * 36000.0 / (end - start)
-	return { startDate: rateArray[start][0], endDate: endDate, value: formattedRound(result, 4) }
+	return { startDate: rateArray[start][0], endDate: rateArray[end][0], value: formattedRound(result, 4) }
 }
 
 function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
@@ -52,6 +52,7 @@ function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 	const rateArray = Array.from(
         rateMap.entries().filter(([date, rate]) => date >= startDate && date <= endDate,
         ([date, rate]) => ({ date, rate })))
+    rateArray.push([endDate, { rate: '0.0', weight: 1 }])
 	//console.error(rateArray)
 	const dates = rateMap.keys()
 	doValidateRateMap(rateMap, startDate, endDate)
@@ -69,8 +70,7 @@ function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 				const ed = plusDays(sd, 1)
 				if(allStartDates)
 					range(0, diffDays(ed, endDate)+1).forEach(edOffset => {
-						const cr = compoundRate(rateArray, 
-							offset, offset+edOffset+1, plusDays(ed, edOffset))
+						const cr = compoundRate(rateArray, offset, offset+edOffset+1)
 						compoundRates.push(cr)
 					})
 				else compoundRates.push(compoundRate(rateArray, 
