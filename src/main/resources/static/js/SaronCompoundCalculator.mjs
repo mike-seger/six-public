@@ -53,6 +53,7 @@ function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
         rateMap.entries().filter(([date, rate]) => date >= startDate && date <= endDate,
         ([date, rate]) => ({ date, rate })))
     rateArray.push([endDate, { rate: '0.0', weight: 1 }])
+    console.error("rateArray length: "+rateArray.length)
 	//console.error(rateArray)
 	const dates = rateMap.keys()
 	doValidateRateMap(rateMap, startDate, endDate)
@@ -73,11 +74,10 @@ function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 						const cr = compoundRate(rateArray, offset, offset+edOffset+1)
 						compoundRates.push(cr)
 					})
-				else compoundRates.push(compoundRate(rateArray, 
-					offset, offset+1, plusDays(ed, 1)))            
+				else compoundRates.push(compoundRate(rateArray, offset, offset+1))
 			}
 		)
-	else compoundRates.push(compoundRate(rateMap, 0, diffDays(startDate, endDate), endDate))
+	else compoundRates.push(compoundRate(rateMap, 0, diffDays(startDate, endDate)))
 	console.error(`Sort ${compoundRates.length} rates`)
 	compoundRates.sort((a, b) => (a.startDate+a.endDate).localeCompare(b.startDate+b.endDate))
 	console.error(`${compoundRates.length} rates calculated`)
