@@ -56,7 +56,7 @@ const importChooser = jSuites.dropdown(document.getElementById('import-chooser')
 	width: '100px'
 })
 
-const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssätze.json')
+const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssaetze.json')
 
 const editorHistoryChooser = jSuites.dropdown(document.getElementById('editor-history-chooser'), {
 	data: [],
@@ -309,7 +309,7 @@ async function importFile() {
 	if(mode === "SaronRatesUpload") {
 		new FileDialog().open(".csv, .tsv, .txt", (file) => readSaronFile(file), () => Spinner.close())
 	} else if(mode.startsWith("SNB ")) {
-		//const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssätze.json')
+		//const timeSeriesData = await fetchTimeSeriesData('../data/snb-zinssaetze.json')
 		const range = mode.substring("SNB ".length)
 		const limits = range.split("-")
 		const series=filteredTimeSeriesData(timeSeriesData,

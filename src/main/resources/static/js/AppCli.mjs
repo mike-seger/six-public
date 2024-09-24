@@ -29,7 +29,7 @@ const endDate = process.argv[3]
 const all = process.argv.length > 4?process.argv[4]==='true' : false
 const allStartDates = process.argv.length > 5?process.argv[5]=='true' : false
 
-const timeSeriesData = await loadRatesData('../data/snb-zinssätze.json')
+const timeSeriesData = await loadRatesData('../data/snb-zinssaetze.json')
 const series=filteredTimeSeriesData(timeSeriesData, "1900-01-01", "9999-12-31", 'EPB@SNB\\.zirepo\\{H0\\}')
 const csv = tsvParse(convertToTSV(series))
 

@@ -43,45 +43,48 @@ function compoundRate(rateArray, start, end) {
 	}
 
 	const result = (product - 1) * 36000.0 / (end - start)
-	return { startDate: rateArray[start][0], endDate: rateArray[end][0], value: formattedRound(result, 4) }
+	return [ start, end, result ]
 }
 
 function compoundRateSeries(rateMap, startDate, endDate, all, allStartDates) {
 	//console.log(rateMap, startDate, endDate, all, allStartDates)
 	const compoundRates = []
-	const rateArray = Array.from(
-        rateMap.entries().filter(([date, rate]) => date >= startDate && date <= endDate,
-        ([date, rate]) => ({ date, rate })))
-    rateArray.push([endDate, { rate: '0.0', weight: 1 }])
-    console.error("rateArray length: "+rateArray.length)
-	//console.error(rateArray)
 	const dates = rateMap.keys()
 	doValidateRateMap(rateMap, startDate, endDate)
 	if(dates.length==0) throw new RuntimeException("No rates found")
 	if(startDate >= endDate)
-		throw(`Startdate (${startDate}) must be before endDate (${endDate})`)
+		throw(`StartDate (${startDate}) must be before endDate (${endDate})`)
 	if(startDate < dates[0])
-		throw("Startdate is before first rate date: "+dates[0])
+		throw("StartDate is before first rate date: "+dates[0])
 	if(plusDays(endDate, -10) > dates[dates.length-1])
-		throw("Enddate is after last rate date: "+dates[dates.length-1])
+		throw("EndDate is after last rate date: "+dates[dates.length-1])
+    const rateArray = Array.from(
+        rateMap.entries().filter(([date, rate]) => date >= startDate && date <= endDate,
+        ([date, rate]) => ({ date, rate })))
+
+    endDate = plusDays(rateArray[rateArray.length-1][0], 1)
+    rateArray.push([endDate, { rate: '0.0', weight: 1 }])
+    console.error("rateArray length: "+rateArray.length)
+	const start = 0
+	const end = diffDays(startDate, endDate)
 	if(all)
-		range(0, diffDays(startDate, endDate)).forEach(
+		range(0, end).forEach(
 			offset => {
-				const sd = plusDays(startDate, offset)
-				const ed = plusDays(sd, 1)
 				if(allStartDates)
-					range(0, diffDays(ed, endDate)+1).forEach(edOffset => {
+					range(0, end-offset).forEach(edOffset => {
 						const cr = compoundRate(rateArray, offset, offset+edOffset+1)
 						compoundRates.push(cr)
 					})
 				else compoundRates.push(compoundRate(rateArray, offset, offset+1))
 			}
 		)
-	else compoundRates.push(compoundRate(rateMap, 0, diffDays(startDate, endDate)))
-	console.error(`Sort ${compoundRates.length} rates`)
-	compoundRates.sort((a, b) => (a.startDate+a.endDate).localeCompare(b.startDate+b.endDate))
+	else compoundRates.push(compoundRate(rateArray, 0, end))
 	console.error(`${compoundRates.length} rates calculated`)
-	return compoundRates
+    const compoundRatesResult = []
+    compoundRates.forEach(cr => compoundRatesResult.push(
+        { startDate: rateArray[cr[0]][0], endDate: rateArray[cr[1]][0], value: formattedRound(cr[2], 4) }
+    ))
+	return compoundRatesResult
 }
 
 if(typeof importScripts === 'function') {
